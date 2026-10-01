@@ -151,28 +151,33 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
   #detailView .book-heading .toolbar button { padding:9px 2px; font-size:11px; }
 }
 @media print {
-  body { background:white; color:black; }
+  :root { color-scheme: light; }
+  body { background:white !important; color:#222 !important; font-size:10.5pt; line-height:1.75; }
   body > *:not(#printArea) { display:none !important; }
   #printArea { display:block !important; }
-  #entryDetailView { display:none !important; }
-  .print-book { font-family:serif; }
+  .print-book { font-family:"Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif; color:#222; }
   .print-cover {
-    min-height:85vh; display:flex; flex-direction:column;
+    min-height:245mm; display:flex; flex-direction:column;
     justify-content:center; align-items:center; text-align:center;
-    page-break-after:always;
+    page-break-after:always; break-after:page; padding:12mm 5mm;
   }
-  .print-cover h1 { font-size:36pt; }
-  .print-entry {
-    break-inside:avoid; page-break-inside:avoid;
-    margin:0 0 28px; padding:0 0 20px; border-bottom:1px solid #ddd;
-  }
-  .print-entry img {
-    display:block; max-width:100%; max-height:420px;
-    object-fit:contain; margin:12px auto;
-  }
-  .print-entry h2 { font-size:20pt; }
-  .print-entry p { white-space:pre-wrap; overflow-wrap:anywhere; }
-  @page { margin:18mm 16mm; }
+  .print-cover-image { display:block; width:auto; max-width:88%; max-height:115mm; object-fit:contain; margin:0 auto 15mm; }
+  .print-cover-kicker { font-size:9pt; letter-spacing:.22em; color:#777; margin-bottom:8mm; }
+  .print-cover h1 { font-size:30pt; line-height:1.45; font-weight:500; margin:0 0 8mm; overflow-wrap:anywhere; }
+  .print-cover-description { max-width:135mm; font-size:11pt; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .print-cover-count { margin-top:14mm; padding-top:4mm; min-width:35mm; border-top:1px solid #aaa; font-size:9pt; color:#666; }
+  .print-entry { margin:0 0 12mm; padding:0 0 9mm; border-bottom:1px solid #d8d8d8; }
+  .print-entry-heading { break-after:avoid; page-break-after:avoid; margin-bottom:5mm; }
+  .print-entry-number { font-size:9pt; letter-spacing:.08em; color:#666; }
+  .print-entry h2 { font-size:19pt; line-height:1.45; font-weight:500; margin:2mm 0; overflow-wrap:anywhere; }
+  .print-entry-meta { font-size:9pt; color:#666; margin:0; }
+  .print-entry-photos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4mm; margin:5mm 0; }
+  .print-entry-photo { display:flex; justify-content:center; align-items:center; min-width:0; break-inside:avoid; page-break-inside:avoid; }
+  .print-entry-photo img { display:block; width:auto; max-width:100%; max-height:82mm; object-fit:contain; }
+  .print-entry-description { white-space:pre-wrap; overflow-wrap:anywhere; margin:5mm 0 0; }
+  .print-entry-description:empty { display:none; }
+  img { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  @page { size:A4 portrait; margin:17mm 16mm 18mm; }
 }
 </style>
 </head>
@@ -213,7 +218,7 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
   </section>
   <section id="entryDetailView" class="hidden">
     <button class="back small" id="backToEntriesBtn">← 項目一覧に戻る</button>
-    <article class="entry-detail">
+        <article class="entry-detail">
       <div id="entryDetailPhotos" class="entry-detail-photos"></div>
       <div class="entry-detail-content">
         <div id="entryDetailCategory"></div><h1 id="entryDetailTitle"></h1>
@@ -261,7 +266,7 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
   </div>
 </dialog>
 <script>
-  "use strict";
+"use strict";
 const $ = id => document.getElementById(id);
 const DB_NAME = "MyEncyclopediaDB";
 const DB_VERSION = 1;
@@ -450,7 +455,7 @@ function renderPhotoManager() {
       </div>
     </div>`).join("");
 }
-  function cropGeometry(image, zoom, xPct, yPct, outW, outH) {
+function cropGeometry(image, zoom, xPct, yPct, outW, outH) {
   const targetRatio = outW / outH;
   let baseW = image.naturalWidth, baseH = image.naturalHeight;
   if (baseW / baseH > targetRatio) baseW = baseH * targetRatio;
@@ -459,7 +464,7 @@ function renderPhotoManager() {
   const maxX = image.naturalWidth - sw, maxY = image.naturalHeight - sh;
   return { sx:maxX * xPct / 100, sy:maxY * yPct / 100, sw, sh };
 }
-function renderCropPreview() {
+  function renderCropPreview() {
   if (!cropSourceImage) return;
   const canvas = $("cropPreview"), ctx = canvas.getContext("2d");
   const zoom = Number($("cropZoom").value), x = Number($("cropX").value), y = Number($("cropY").value);
@@ -638,11 +643,16 @@ function printBook() {
   if (!book) return;
   const area = $("printArea");
   area.innerHTML = `<div class="print-book"><section class="print-cover">
-    ${book.cover ? `<img src="${book.cover}" alt="" style="max-width:90%;max-height:55vh;object-fit:contain">` : ""}
-    <h1>${esc(book.name)}</h1>${book.description ? `<p>${esc(book.description)}</p>` : ""}<p>${book.entries.length} 項目</p>
+    <div class="print-cover-kicker">MY ENCYCLOPEDIA</div>
+    ${book.cover ? `<img class="print-cover-image" src="${book.cover}" alt="">` : ""}
+    <h1>${esc(book.name)}</h1>${book.description ? `<p class="print-cover-description">${esc(book.description)}</p>` : ""}
+    <div class="print-cover-count">${book.entries.length} 項目</div>
     </section>
-    ${book.entries.map((e,i) => `<section class="print-entry"><div class="muted">${String(i+1).padStart(2,"0")}${e.category ? " ・ "+esc(e.category) : ""}</div>
-      <h2>${esc(e.name)}</h2>${e.date ? `<p>${esc(e.date)}</p>` : ""}${(e.photos || []).map(src => `<img src="${src}" alt="">`).join("")}<p>${esc(e.description || "")}</p>
+    ${book.entries.map((e,i) => `<section class="print-entry">
+      <header class="print-entry-heading"><div class="print-entry-number">${String(i+1).padStart(2,"0")} / ${String(book.entries.length).padStart(2,"0")}</div>
+      <h2>${esc(e.name)}</h2><p class="print-entry-meta">${[e.category,e.date].filter(Boolean).map(esc).join(" ・ ")}</p></header>
+      ${(e.photos || []).length ? `<div class="print-entry-photos">${e.photos.map(src => `<div class="print-entry-photo"><img src="${src}" alt=""></div>`).join("")}</div>` : ""}
+      <p class="print-entry-description">${esc(e.description || "")}</p>
     </section>`).join("")}</div>`;
   const images = [...area.querySelectorAll("img")];
   Promise.all(images.map(img => {
