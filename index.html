@@ -168,23 +168,54 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
   .print-cover h1 { font-size:30pt; line-height:1.45; font-weight:500; margin:0 0 8mm; overflow-wrap:anywhere; }
   .print-cover-description { max-width:135mm; font-size:11pt; white-space:pre-wrap; overflow-wrap:anywhere; }
   .print-cover-count { margin-top:14mm; padding-top:4mm; min-width:35mm; border-top:1px solid #aaa; font-size:9pt; color:#666; }
-  .print-book--single .print-entry { break-before:page; page-break-before:always; margin:0; padding:0; border:0; }
-  .print-book--compact .print-entry { margin:0 0 10mm; padding:0 0 7mm; border-bottom:1px solid #d8d8d8; break-inside:avoid; page-break-inside:avoid; }
+  .print-book--single .print-entry { margin:0; padding:0; border:0; }
+
+  /* 「効率よく配置」は、小さな項目を同じページに詰めて配置する。
+     1項目がページ途中で分割されることは避ける。 */
+  .print-book--compact {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    column-gap:9mm;
+    row-gap:8mm;
+    align-items:start;
+  }
+  .print-book--compact .print-cover {
+    grid-column:1 / -1;
+  }
+  .print-book--compact .print-entry {
+    min-width:0;
+    margin:0;
+    padding:0 0 5mm;
+    border-bottom:1px solid #d8d8d8;
+    break-inside:avoid;
+    page-break-inside:avoid;
+  }
   .print-book--single .print-entry-photos img { max-height:58mm; }
+  .print-book--compact .print-entry-photos {
+    gap:3mm;
+    margin:3mm 0;
+  }
+  .print-book--compact .print-entry-photo img {
+    max-height:45mm;
+  }
+  .print-book--compact .print-entry-heading { margin-bottom:2mm; }
+  .print-book--compact .print-entry h2 { font-size:14pt; margin:1mm 0; }
+  .print-book--compact .print-entry-number,
+  .print-book--compact .print-entry-meta { font-size:7.5pt; }
+  .print-book--compact .print-entry-description { font-size:8.5pt; margin:2mm 0 0; line-height:1.55; }
   .print-entry-heading { break-after:avoid; page-break-after:avoid; margin-bottom:5mm; }
   .print-entry-number { font-size:9pt; letter-spacing:.08em; color:#666; }
   .print-entry h2 { font-size:19pt; line-height:1.45; font-weight:500; margin:2mm 0; overflow-wrap:anywhere; }
   .print-entry-meta { font-size:9pt; color:#666; margin:0; }
   .print-entry-photos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4mm; margin:5mm 0; }
   .print-entry-photo { display:flex; justify-content:center; align-items:center; min-width:0; break-inside:avoid; page-break-inside:avoid; }
-  .print-entry-photo img { display:block; width:auto; max-width:100%; max-height:82mm; object-fit:contain; }
+  .print-entry-photo img { display:block; width:auto; max-width:100%; max-height:58mm; object-fit:contain; }
   .print-entry-description { white-space:pre-wrap; overflow-wrap:anywhere; margin:5mm 0 0; }
   .print-entry-description:empty { display:none; }
   img { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
-  .print-book--accordion { font-family:"Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif; }
   .print-book--accordion { page:accordion; font-family:"Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif; }
   .accordion-sheet {
-    width:100%; height:194mm; display:grid;
+    width:297mm; height:210mm; display:grid;
     grid-template-columns:repeat(4,minmax(0,1fr));
     grid-template-rows:repeat(2,minmax(0,1fr));
     border:0.35mm solid #222; break-after:page; page-break-after:always;
@@ -209,7 +240,7 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
   .accordion-panel.cover-panel img { max-height:45mm; }
   .print-book--accordion .print-cover, .print-book--accordion .print-entry { display:none !important; }
   @page { size:A4 portrait; margin:17mm 16mm 18mm; }
-  @page accordion { size:A4 landscape; margin:8mm; }
+  @page accordion { size:297mm 210mm; margin:0; }
 }
 </style>
 </head>
@@ -714,7 +745,28 @@ function printBook(layout = "single", includeCover = true) {
   const book = currentBook();
   if (!book) return;
   const area = $("printArea");
+
+  // 前回の折本印刷用スタイルが残っていたら解除。
+  const oldAccordionStyle = document.getElementById("accordionPrintRuntimeStyle");
+  if (oldAccordionStyle) oldAccordionStyle.remove();
+  document.documentElement.classList.remove("accordion-print-mode");
+
   if (layout === "accordion") {
+    // iPhone/iPad の一部ブラウザでは named @page の landscape 指定だけでは
+    // 印刷向きが切り替わらないことがあるため、折本を選んだ瞬間だけ
+    // A4横・余白0mmを明示した @page を追加する。
+    const printStyle = document.createElement("style");
+    printStyle.id = "accordionPrintRuntimeStyle";
+    printStyle.textContent = `
+      @page { size: 297mm 210mm; margin: 0; }
+      @media print {
+        html, body { width:297mm !important; min-width:297mm !important; margin:0 !important; padding:0 !important; }
+        #printArea { width:297mm !important; margin:0 !important; padding:0 !important; }
+        .print-book--accordion { width:297mm !important; margin:0 !important; padding:0 !important; }
+        .accordion-sheet { width:297mm !important; height:210mm !important; margin:0 !important; padding:0 !important; }
+      }`;
+    document.head.appendChild(printStyle);
+    document.documentElement.classList.add("accordion-print-mode");
     // 折り図の配置：上段は7,6,5,4（180度回転）、下段は8,1,2,3。
     const pages = [];
     if (includeCover) pages.push({ kind:"cover" });
@@ -750,12 +802,20 @@ function printBook(layout = "single", includeCover = true) {
     const coverHTML = includeCover ? `<section class="print-cover"><div class="print-cover-kicker">MY ENCYCLOPEDIA</div>${book.cover ? `<img class="print-cover-image" src="${book.cover}" alt="">` : ""}<h1>${esc(book.name)}</h1>${book.description ? `<p class="print-cover-description">${esc(book.description)}</p>` : ""}<div class="print-cover-count">${book.entries.length} 項目</div></section>` : "";
     area.innerHTML = `<div class="print-book print-book--${layout}">${coverHTML}${book.entries.map((e,i) => `<section class="print-entry"><header class="print-entry-heading"><div class="print-entry-number">${String(i+1).padStart(2,"0")} / ${String(book.entries.length).padStart(2,"0")}</div><h2>${esc(e.name)}</h2><p class="print-entry-meta">${[e.category,e.date].filter(Boolean).map(esc).join(" ・ ")}</p></header>${(e.photos||[]).length ? `<div class="print-entry-photos">${e.photos.map(src => `<div class="print-entry-photo"><img src="${src}" alt=""></div>`).join("")}</div>` : ""}<p class="print-entry-description">${esc(e.description || "")}</p></section>`).join("")}</div>`;
   }
-  const images = [...area.querySelectorAll("img")];
-  Promise.all(images.map(img => {
-    if (img.complete) return Promise.resolve();
-    return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
-  })).then(() => setTimeout(() => window.print(),250));
+  // window.print() はユーザーが「印刷画面を開く」を押したイベント内で
+  // 同期的に呼び出す。非同期処理＋setTimeoutの後から呼ぶと、iPhone/iPad
+  // では「このWebサイトから自動的に印刷することは禁止されています」
+  // と扱われることがあるため。
+  window.print();
 }
+
+// 印刷ダイアログを閉じたあと、折本専用のA4横指定を解除する。
+window.addEventListener("afterprint", () => {
+  const style = document.getElementById("accordionPrintRuntimeStyle");
+  if (style) style.remove();
+  document.documentElement.classList.remove("accordion-print-mode");
+});
+
 async function init() {
   try {
     if (!("indexedDB" in window)) throw new Error("このブラウザでは端末内保存が利用できません。");
