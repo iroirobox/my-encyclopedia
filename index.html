@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -65,6 +64,22 @@ h2 { font-size:18px; font-weight:600; }
 .back { margin-bottom:18px; }
 .book-heading { margin-bottom:20px; }
 .book-heading .muted { margin-bottom:13px; }
+
+/* 図鑑内の3つの操作ボタンをスマホでも横一列に配置 */
+#detailView .book-heading .toolbar {
+  display:flex;
+  flex-wrap:nowrap;
+  gap:6px;
+  width:100%;
+}
+#detailView .book-heading .toolbar button {
+  flex:1 1 0;
+  min-width:0;
+  white-space:nowrap;
+  padding:9px 5px;
+  font-size:13px;
+}
+
 .entry-card { cursor:pointer; }
 .entry-image { aspect-ratio:4/3; background:var(--pale); overflow:hidden; }
 .entry-placeholder { height:100%; display:grid; place-items:center; color:var(--muted); font-size:13px; }
@@ -76,6 +91,7 @@ h2 { font-size:18px; font-weight:600; }
 .empty strong { display:block; color:var(--ink); font-family:serif; font-size:20px; margin-bottom:7px; }
 .search { width:100%; border:1px solid var(--line); border-radius:10px; padding:11px 13px; background:var(--paper); margin-bottom:15px; }
 .hidden { display:none !important; }
+
 dialog {
   border:1px solid var(--line); border-radius:16px; padding:0;
   width:min(520px,calc(100% - 24px)); max-height:88dvh;
@@ -99,52 +115,23 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
 
 /* 項目詳細画面 */
 .entry-detail {
-  background:var(--paper);
-  border:1px solid var(--line);
-  border-radius:16px;
-  overflow:hidden;
+  background:var(--paper); border:1px solid var(--line);
+  border-radius:16px; overflow:hidden;
 }
 .entry-detail-photos {
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:3px;
-  background:var(--pale);
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:3px; background:var(--pale);
 }
 .entry-detail-photos:empty { display:none; }
-.entry-detail-photo {
-  min-width:0;
-  aspect-ratio:4/3;
-  background:var(--pale);
-  overflow:hidden;
-}
-.entry-detail-photo img {
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  display:block;
-}
+.entry-detail-photo { min-width:0; aspect-ratio:4/3; background:var(--pale); overflow:hidden; }
+.entry-detail-photo img { width:100%; height:100%; object-fit:contain; display:block; }
 .entry-detail-content { padding:22px; }
-.entry-detail-content h1 {
-  overflow-wrap:anywhere;
-  margin:10px 0 5px;
-}
+.entry-detail-content h1 { overflow-wrap:anywhere; margin:10px 0 5px; }
 .entry-detail-date { margin-top:6px; }
-.entry-detail-actions {
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin:20px 0 28px;
-}
-.entry-detail-description {
-  border-top:1px solid var(--line);
-  padding-top:22px;
-}
+.entry-detail-actions { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 28px; }
+.entry-detail-description { border-top:1px solid var(--line); padding-top:22px; }
 .entry-detail-description h2 { font-size:15px; margin-bottom:10px; }
-.entry-detail-description p {
-  white-space:pre-wrap;
-  overflow-wrap:anywhere;
-  margin-bottom:0;
-}
+.entry-detail-description p { white-space:pre-wrap; overflow-wrap:anywhere; margin-bottom:0; }
 
 @media(min-width:620px) {
   .book-grid,.entry-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
@@ -158,6 +145,8 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
   .book-info,.entry-info { padding:9px; }
   .brand { font-size:22px; }
   .entry-detail-content { padding:16px; }
+  #detailView .book-heading .toolbar { gap:4px; }
+  #detailView .book-heading .toolbar button { padding:9px 2px; font-size:11px; }
 }
 @media print {
   body { background:white; color:black; }
@@ -185,7 +174,6 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
 }
 </style>
 </head>
-
 <body>
 <header>
   <div class="header-inner">
@@ -195,7 +183,7 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
 </header>
 
 <main id="app">
-  <div class="toolbar">
+  <div class="toolbar" id="libraryToolbar">
     <button class="primary" id="addBookBtn">＋ 図鑑をつくる</button>
     <button id="backupBtn">バックアップ</button>
     <button id="restoreBtn">復元</button>
@@ -235,7 +223,6 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
     </div>
   </section>
 
-  <!-- 項目詳細画面 -->
   <section id="entryDetailView" class="hidden">
     <button class="back small" id="backToEntriesBtn">← 項目一覧に戻る</button>
     <article class="entry-detail">
@@ -331,24 +318,31 @@ let currentBookId = null;
 let saving = Promise.resolve();
 
 function uid() {
-  return crypto.randomUUID ? crypto.randomUUID() :
-    Date.now().toString(36) + Math.random().toString(36).slice(2);
+  return crypto.randomUUID
+    ? crypto.randomUUID()
+    : Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-  })[c]);
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  }[c]));
 }
 
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
+
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains(STORE)) {
         request.result.createObjectStore(STORE);
       }
     };
+
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -358,6 +352,7 @@ function loadState() {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readonly");
     const req = tx.objectStore(STORE).get("main");
+
     req.onsuccess = () => resolve(req.result || { books: [] });
     req.onerror = () => reject(req.error);
   });
@@ -367,6 +362,7 @@ function saveState() {
   saving = saving.then(() => new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");
     tx.objectStore(STORE).put(state, "main");
+
     tx.oncomplete = resolve;
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error || new Error("保存が中断されました"));
@@ -390,6 +386,7 @@ function imageToDataURL(file) {
       reject(new Error("画像ファイルを選んでください。"));
       return;
     }
+
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
     reader.onerror = () => reject(new Error("画像を読み込めませんでした。"));
@@ -405,24 +402,30 @@ async function readPhotos(files, existing = []) {
       alert("写真は1項目につき最大10枚です。");
       break;
     }
+
     if (file.size > 8 * 1024 * 1024) {
       alert("8MBを超える写真は追加できませんでした：" + file.name);
       continue;
     }
+
     try {
       result.push(await imageToDataURL(file));
     } catch (e) {
       alert(e.message);
     }
   }
+
   return result;
 }
 
 function showLibrary() {
   currentBookId = null;
+
+  $("libraryToolbar").classList.remove("hidden");
   $("libraryView").classList.remove("hidden");
   $("detailView").classList.add("hidden");
   $("entryDetailView").classList.add("hidden");
+
   renderBooks();
 }
 
@@ -452,14 +455,18 @@ function renderBooks() {
 function openBook(id) {
   currentBookId = id;
   const book = currentBook();
+
   if (!book) return showLibrary();
 
+  $("libraryToolbar").classList.add("hidden");
   $("libraryView").classList.add("hidden");
   $("entryDetailView").classList.add("hidden");
   $("detailView").classList.remove("hidden");
+
   $("detailTitle").textContent = book.name;
   $("detailDescription").textContent = book.description || "";
   $("searchInput").value = "";
+
   renderEntries();
 }
 
@@ -468,14 +475,22 @@ function renderEntries() {
   if (!book) return;
 
   const q = $("searchInput").value.trim().toLocaleLowerCase();
+
   const entries = book.entries.filter(e =>
-    [e.name, e.category, e.description, e.date].join(" ")
-      .toLocaleLowerCase().includes(q)
+    [e.name, e.category, e.description, e.date]
+      .join(" ")
+      .toLocaleLowerCase()
+      .includes(q)
   );
 
   $("entryList").innerHTML = entries.map(e => `
-    <article class="entry-card" data-view-entry="${e.id}" tabindex="0"
-      role="button" aria-label="${esc(e.name)}の詳細を表示">
+    <article
+      class="entry-card"
+      data-view-entry="${e.id}"
+      tabindex="0"
+      role="button"
+      aria-label="${esc(e.name)}の詳細を表示"
+    >
       <div class="entry-image">
         ${e.photos?.length
           ? `<img src="${e.photos[0]}" alt="">`
@@ -505,10 +520,10 @@ function renderEntries() {
   }
 }
 
-/* 項目詳細画面 */
 function openEntryDetail(entryId) {
   const book = currentBook();
   const entry = book?.entries.find(e => e.id === entryId);
+
   if (!book || !entry) return;
 
   $("detailView").classList.add("hidden");
@@ -518,17 +533,15 @@ function openEntryDetail(entryId) {
   $("entryDetailCategory").innerHTML = entry.category
     ? `<span class="tag">${esc(entry.category)}</span>`
     : "";
-
   $("entryDetailDate").textContent = entry.date || "";
   $("entryDetailDescription").textContent =
     entry.description || "説明・メモはありません。";
 
-  $("entryDetailPhotos").innerHTML = (entry.photos || [])
-    .map((src, index) => `
-      <div class="entry-detail-photo">
-        <img src="${src}" alt="${esc(entry.name)} 写真${index + 1}">
-      </div>
-    `).join("");
+  $("entryDetailPhotos").innerHTML = (entry.photos || []).map((src, index) => `
+    <div class="entry-detail-photo">
+      <img src="${src}" alt="${esc(entry.name)} 写真${index + 1}">
+    </div>
+  `).join("");
 
   $("editDetailEntryBtn").onclick = () => openEntryDialog(entry);
 
@@ -542,9 +555,7 @@ function openEntryDetail(entryId) {
       $("entryDetailView").classList.add("hidden");
       $("detailView").classList.remove("hidden");
       renderEntries();
-    } catch {
-      // 保存失敗時のエラーメッセージは saveState が表示します。
-    }
+    } catch {}
   };
 }
 
@@ -596,6 +607,7 @@ $("bookForm").onsubmit = async event => {
   const id = $("bookId").value;
   const existing = state.books.find(b => b.id === id);
   const name = $("bookName").value.trim();
+
   if (!name) return;
 
   let cover = existing?.cover || "";
@@ -606,6 +618,7 @@ $("bookForm").onsubmit = async event => {
       alert("表紙の画像は8MB以下にしてください。");
       return;
     }
+
     try {
       cover = await imageToDataURL(file);
     } catch (e) {
@@ -675,9 +688,7 @@ $("entryForm").onsubmit = async event => {
     book.entries.unshift(item);
   }
 
-  // 詳細画面から編集した場合は、保存後に更新された詳細画面を表示します。
-  const returnToDetail =
-    !$("entryDetailView").classList.contains("hidden");
+  const returnToDetail = !$("entryDetailView").classList.contains("hidden");
 
   try {
     await saveState();
@@ -706,9 +717,10 @@ $("bookList").addEventListener("click", async event => {
   if (button.dataset.deleteBook) {
     const book = state.books.find(b => b.id === button.dataset.deleteBook);
 
-    if (!book || !confirm(
-      `「${book.name}」と中の項目をすべて削除します。先にバックアップを取ることをおすすめします。削除しますか？`
-    )) return;
+    if (
+      !book ||
+      !confirm(`「${book.name}」と中の項目をすべて削除します。先にバックアップを取ることをおすすめします。削除しますか？`)
+    ) return;
 
     state.books = state.books.filter(b => b.id !== book.id);
 
@@ -724,9 +736,11 @@ $("entryList").addEventListener("click", async event => {
 
   if (button?.dataset.editEntry) {
     event.stopPropagation();
+
     const item = currentBook()?.entries.find(
       e => e.id === button.dataset.editEntry
     );
+
     if (item) openEntryDialog(item);
     return;
   }
@@ -735,9 +749,7 @@ $("entryList").addEventListener("click", async event => {
     event.stopPropagation();
 
     const book = currentBook();
-    const item = book?.entries.find(
-      e => e.id === button.dataset.deleteEntry
-    );
+    const item = book?.entries.find(e => e.id === button.dataset.deleteEntry);
 
     if (!item || !confirm(`「${item.name}」を削除しますか？`)) return;
 
@@ -747,11 +759,15 @@ $("entryList").addEventListener("click", async event => {
       await saveState();
       renderEntries();
     } catch {}
+
     return;
   }
 
   const card = event.target.closest("[data-view-entry]");
-  if (card) openEntryDetail(card.dataset.viewEntry);
+
+  if (card) {
+    openEntryDetail(card.dataset.viewEntry);
+  }
 });
 
 $("entryList").addEventListener("keydown", event => {
@@ -775,13 +791,13 @@ $("backupBtn").onclick = async () => {
       data: state
     };
 
-    const blob = new Blob(
-      [JSON.stringify(payload)],
-      {type:"application/json"}
-    );
+    const blob = new Blob([JSON.stringify(payload)], {
+      type: "application/json"
+    });
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+
     a.href = url;
     a.download = `my-encyclopedia-${new Date().toISOString().slice(0,10)}.json`;
     a.click();
@@ -797,11 +813,12 @@ $("restoreBtn").onclick = () => $("restoreFile").click();
 $("restoreFile").onchange = async event => {
   const file = event.target.files[0];
   event.target.value = "";
+
   if (!file) return;
 
-  if (!confirm(
-    "復元すると、現在の図鑑はバックアップの内容に置き換わります。先に現在のデータもバックアップしてください。続けますか？"
-  )) return;
+  if (
+    !confirm("復元すると、現在の図鑑はバックアップの内容に置き換わります。先に現在のデータもバックアップしてください。続けますか？")
+  ) return;
 
   try {
     const payload = JSON.parse(await file.text());
@@ -811,18 +828,22 @@ $("restoreFile").onchange = async event => {
       payload.format !== "my-encyclopedia-backup" ||
       !incoming ||
       !Array.isArray(incoming.books) ||
-      !incoming.books.every(b =>
-        typeof b.id === "string" &&
-        typeof b.name === "string" &&
-        Array.isArray(b.entries)
+      !incoming.books.every(
+        b => typeof b.id === "string" &&
+             typeof b.name === "string" &&
+             Array.isArray(b.entries)
       )
     ) {
       throw new Error("対応していないバックアップ形式です。");
     }
 
-    if (!incoming.books.every(b => b.entries.every(e =>
-      typeof e.id === "string" && typeof e.name === "string"
-    ))) {
+    if (
+      !incoming.books.every(
+        b => b.entries.every(
+          e => typeof e.id === "string" && typeof e.name === "string"
+        )
+      )
+    ) {
       throw new Error("項目データの形式が正しくありません。");
     }
 
@@ -841,26 +862,30 @@ function printBook() {
 
   const area = $("printArea");
 
-  area.innerHTML = `<div class="print-book">
-    <section class="print-cover">
-      ${book.cover
-        ? `<img src="${book.cover}" alt="" style="max-width:90%;max-height:55vh;object-fit:contain">`
-        : ""}
-      <h1>${esc(book.name)}</h1>
-      ${book.description ? `<p>${esc(book.description)}</p>` : ""}
-      <p>${book.entries.length} 項目</p>
-    </section>
-
-    ${book.entries.map((e,i) => `
-      <section class="print-entry">
-        <div class="muted">${String(i+1).padStart(2,"0")}${e.category ? " ・ "+esc(e.category) : ""}</div>
-        <h2>${esc(e.name)}</h2>
-        ${e.date ? `<p>${esc(e.date)}</p>` : ""}
-        ${(e.photos || []).map(src => `<img src="${src}" alt="">`).join("")}
-        <p>${esc(e.description || "")}</p>
+  area.innerHTML = `
+    <div class="print-book">
+      <section class="print-cover">
+        ${book.cover
+          ? `<img src="${book.cover}" alt="" style="max-width:90%;max-height:55vh;object-fit:contain">`
+          : ""}
+        <h1>${esc(book.name)}</h1>
+        ${book.description ? `<p>${esc(book.description)}</p>` : ""}
+        <p>${book.entries.length} 項目</p>
       </section>
-    `).join("")}
-  </div>`;
+
+      ${book.entries.map((e, i) => `
+        <section class="print-entry">
+          <div class="muted">
+            ${String(i + 1).padStart(2, "0")}${e.category ? " ・ " + esc(e.category) : ""}
+          </div>
+          <h2>${esc(e.name)}</h2>
+          ${e.date ? `<p>${esc(e.date)}</p>` : ""}
+          ${(e.photos || []).map(src => `<img src="${src}" alt="">`).join("")}
+          <p>${esc(e.description || "")}</p>
+        </section>
+      `).join("")}
+    </div>
+  `;
 
   const images = [...area.querySelectorAll("img")];
 
@@ -883,12 +908,19 @@ async function init() {
     db = await openDB();
     state = await loadState();
 
-    if (!Array.isArray(state.books)) state = {books:[]};
+    if (!Array.isArray(state.books)) {
+      state = { books: [] };
+    }
 
     state.books.forEach(book => {
-      if (!Array.isArray(book.entries)) book.entries = [];
+      if (!Array.isArray(book.entries)) {
+        book.entries = [];
+      }
+
       book.entries.forEach(e => {
-        if (!Array.isArray(e.photos)) e.photos = [];
+        if (!Array.isArray(e.photos)) {
+          e.photos = [];
+        }
       });
     });
 
