@@ -1,1217 +1,907 @@
 
-
 <!DOCTYPE html>
-
 <html lang="ja">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <meta name="theme-color" content="#f7f5ef">
-
 <title>私の図鑑</title>
-
 <style>
-
 :root {
-
   --bg:#f7f5ef; --paper:#fffefa; --ink:#34382f;
-
   --muted:#818477; --line:#e7e4d9; --green:#526b51;
-
   --pale:#e9eee5; --danger:#a34e42;
-
 }
-
 * { box-sizing:border-box; }
-
 body {
-
   margin:0; background:var(--bg); color:var(--ink);
-
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",
-
   "Yu Gothic",Meiryo,sans-serif; line-height:1.7;
-
 }
-
 button,input,textarea,select { font:inherit; }
-
 button { cursor:pointer; }
-
 button:focus-visible,input:focus-visible,textarea:focus-visible {
-
   outline:2px solid var(--green); outline-offset:2px;
-
 }
-
 header {
-
   padding:20px 18px 14px; border-bottom:1px solid var(--line);
-
   background:var(--paper);
-
 }
-
 .header-inner,main { width:min(100% - 32px,850px); margin:auto; }
-
 .brand { font-family:serif; font-size:25px; letter-spacing:.08em; }
-
 .subtitle { font-size:12px; color:var(--muted); margin-top:2px; }
-
 main { padding:22px 0 60px; }
-
 .toolbar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; }
-
 button {
-
   border:1px solid var(--line); border-radius:10px; padding:9px 13px;
-
   background:var(--paper); color:var(--ink);
-
 }
-
 button.primary { background:var(--green); color:white; border-color:var(--green); }
-
 button.danger { color:var(--danger); }
-
 button.small { font-size:13px; padding:6px 10px; }
-
 h1,h2,h3,p { margin-top:0; }
-
 h1 { font-family:serif; font-size:27px; font-weight:500; margin-bottom:5px; }
-
 h2 { font-size:18px; font-weight:600; }
-
 .muted { color:var(--muted); font-size:13px; }
-
 .section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:15px; }
-
 .book-grid,.entry-grid {
-
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px;
-
 }
-
 .book-card,.entry-card {
-
   border:1px solid var(--line); background:var(--paper);
-
   border-radius:13px; overflow:hidden; min-width:0;
-
 }
-
 .book-cover {
-
   aspect-ratio:4/3; background:var(--pale); display:grid;
-
   place-items:center; overflow:hidden; color:var(--green);
-
   font-family:serif; font-size:30px;
-
 }
-
 .book-cover img,.entry-image img { width:100%; height:100%; object-fit:cover; }
-
 .book-info { padding:13px; }
-
 .book-info h3 { margin:0 0 4px; font-size:16px; overflow-wrap:anywhere; }
-
 .book-info p { margin:0 0 10px; }
-
 .card-actions { display:flex; flex-wrap:wrap; gap:6px; }
-
 .card-actions button { font-size:12px; padding:5px 8px; }
-
 .back { margin-bottom:18px; }
-
 .book-heading { margin-bottom:20px; }
-
 .book-heading .muted { margin-bottom:13px; }
-
 .entry-card { cursor:pointer; }
-
 .entry-image { aspect-ratio:4/3; background:var(--pale); overflow:hidden; }
-
 .entry-placeholder { height:100%; display:grid; place-items:center; color:var(--muted); font-size:13px; }
-
 .entry-info { padding:12px; }
-
 .entry-info h3 { font-size:16px; margin:0 0 4px; overflow-wrap:anywhere; }
-
 .entry-info p { font-size:13px; margin:5px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; }
-
 .tag { display:inline-block; color:var(--green); background:var(--pale); border-radius:5px; padding:1px 7px; font-size:11px; }
-
 .empty { text-align:center; padding:38px 18px; color:var(--muted); border:1px dashed var(--line); border-radius:13px; }
-
 .empty strong { display:block; color:var(--ink); font-family:serif; font-size:20px; margin-bottom:7px; }
-
 .search { width:100%; border:1px solid var(--line); border-radius:10px; padding:11px 13px; background:var(--paper); margin-bottom:15px; }
-
 .hidden { display:none !important; }
-
 dialog {
-
   border:1px solid var(--line); border-radius:16px; padding:0;
-
   width:min(520px,calc(100% - 24px)); max-height:88dvh;
-
   background:var(--paper); color:var(--ink);
-
 }
-
 dialog::backdrop { background:#2228; }
-
 .dialog-inner { padding:21px; overflow-y:auto; max-height:88dvh; }
-
 .dialog-inner h2 { margin-bottom:18px; }
-
 .field { margin-bottom:15px; }
-
 .field label { display:block; font-size:13px; margin-bottom:5px; font-weight:600; }
-
 .field input:not([type=file]),.field textarea,.field select {
-
   width:100%; border:1px solid var(--line); border-radius:9px;
-
   padding:10px; background:white; color:var(--ink);
-
 }
-
 .field textarea { min-height:110px; resize:vertical; }
-
 .field input[type=file] { width:100%; font-size:13px; }
-
 .form-actions { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; margin-top:20px; }
-
 .notice { font-size:12px; color:var(--muted); }
-
 footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
-
 #printArea { display:none; }
 
+/* 項目詳細画面 */
+.entry-detail {
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+}
+.entry-detail-photos {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:3px;
+  background:var(--pale);
+}
+.entry-detail-photos:empty { display:none; }
+.entry-detail-photo {
+  min-width:0;
+  aspect-ratio:4/3;
+  background:var(--pale);
+  overflow:hidden;
+}
+.entry-detail-photo img {
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.entry-detail-content { padding:22px; }
+.entry-detail-content h1 {
+  overflow-wrap:anywhere;
+  margin:10px 0 5px;
+}
+.entry-detail-date { margin-top:6px; }
+.entry-detail-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:20px 0 28px;
+}
+.entry-detail-description {
+  border-top:1px solid var(--line);
+  padding-top:22px;
+}
+.entry-detail-description h2 { font-size:15px; margin-bottom:10px; }
+.entry-detail-description p {
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  margin-bottom:0;
+}
+
 @media(min-width:620px) {
-
   .book-grid,.entry-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
-
   header { padding-top:25px; }
-
+  .entry-detail-photos { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .entry-detail-content { padding:30px; }
 }
-
 @media(max-width:380px) {
-
   .header-inner,main { width:calc(100% - 24px); }
-
   .book-grid,.entry-grid { gap:9px; }
-
   .book-info,.entry-info { padding:9px; }
-
   .brand { font-size:22px; }
-
+  .entry-detail-content { padding:16px; }
 }
-
 @media print {
-
   body { background:white; color:black; }
-
   body > *:not(#printArea) { display:none !important; }
-
   #printArea { display:block !important; }
-
+  #entryDetailView { display:none !important; }
   .print-book { font-family:serif; }
-
-  .print-cover { min-height:85vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; page-break-after:always; }
-
+  .print-cover {
+    min-height:85vh; display:flex; flex-direction:column;
+    justify-content:center; align-items:center; text-align:center;
+    page-break-after:always;
+  }
   .print-cover h1 { font-size:36pt; }
-
-  .print-entry { break-inside:avoid; page-break-inside:avoid; margin:0 0 28px; padding:0 0 20px; border-bottom:1px solid #ddd; }
-
-  .print-entry img { display:block; max-width:100%; max-height:420px; object-fit:contain; margin:12px auto; }
-
+  .print-entry {
+    break-inside:avoid; page-break-inside:avoid;
+    margin:0 0 28px; padding:0 0 20px; border-bottom:1px solid #ddd;
+  }
+  .print-entry img {
+    display:block; max-width:100%; max-height:420px;
+    object-fit:contain; margin:12px auto;
+  }
   .print-entry h2 { font-size:20pt; }
-
   .print-entry p { white-space:pre-wrap; overflow-wrap:anywhere; }
-
   @page { margin:18mm 16mm; }
-
 }
-
 </style>
-
 </head>
 
 <body>
-
 <header>
-
   <div class="header-inner">
-
     <div class="brand">私の図鑑</div>
-
     <div class="subtitle">好きなものを、ひとつずつ記録する。</div>
-
   </div>
-
 </header>
 
 <main id="app">
-
   <div class="toolbar">
-
     <button class="primary" id="addBookBtn">＋ 図鑑をつくる</button>
-
     <button id="backupBtn">バックアップ</button>
-
     <button id="restoreBtn">復元</button>
-
     <input class="hidden" type="file" id="restoreFile" accept=".json,application/json">
-
   </div>
 
   <section id="libraryView">
-
     <div class="section-head">
-
       <div>
-
         <h1>本棚</h1>
-
         <div class="muted" id="bookCount">あなたの図鑑</div>
-
       </div>
-
     </div>
-
     <div id="bookList" class="book-grid"></div>
-
     <div id="emptyBooks" class="empty hidden">
-
       <strong>最初の一冊を。</strong>
-
       好きなテーマで、あなただけの図鑑をつくりましょう。
-
     </div>
-
   </section>
 
   <section id="detailView" class="hidden">
-
     <button class="back small" id="backBtn">← 本棚に戻る</button>
-
     <div class="book-heading">
-
       <h1 id="detailTitle"></h1>
-
       <p class="muted" id="detailDescription"></p>
-
       <div class="toolbar">
-
         <button class="primary" id="addEntryBtn">＋ 項目を追加</button>
-
         <button id="editBookBtn">図鑑を編集</button>
-
         <button id="printBtn">印刷・PDF保存</button>
-
       </div>
-
     </div>
-
     <input id="searchInput" class="search" type="search" placeholder="項目名・説明・分類で検索">
-
     <div id="entryList" class="entry-grid"></div>
-
     <div id="emptyEntries" class="empty hidden">
-
       <strong>まだ項目がありません。</strong>
-
       気になったものを、最初の一項目として登録しましょう。
-
     </div>
+  </section>
 
+  <!-- 項目詳細画面 -->
+  <section id="entryDetailView" class="hidden">
+    <button class="back small" id="backToEntriesBtn">← 項目一覧に戻る</button>
+    <article class="entry-detail">
+      <div id="entryDetailPhotos" class="entry-detail-photos"></div>
+      <div class="entry-detail-content">
+        <div id="entryDetailCategory"></div>
+        <h1 id="entryDetailTitle"></h1>
+        <div id="entryDetailDate" class="muted entry-detail-date"></div>
+        <div class="entry-detail-actions">
+          <button class="primary" id="editDetailEntryBtn">編集</button>
+          <button class="danger" id="deleteDetailEntryBtn">削除</button>
+        </div>
+        <section class="entry-detail-description">
+          <h2>説明・メモ</h2>
+          <p id="entryDetailDescription"></p>
+        </section>
+      </div>
+    </article>
   </section>
 
   <footer>記録はこのブラウザ内に保存されます。定期的にバックアップしてください。</footer>
-
 </main>
 
 <div id="printArea"></div>
 
 <dialog id="bookDialog">
-
   <form id="bookForm" class="dialog-inner">
-
     <h2 id="bookDialogTitle">図鑑をつくる</h2>
-
     <input type="hidden" id="bookId">
-
     <div class="field">
-
       <label for="bookName">図鑑の名前 *</label>
-
       <input id="bookName" maxlength="120" required placeholder="例：身近な植物">
-
     </div>
-
     <div class="field">
-
       <label for="bookDesc">説明</label>
-
       <textarea id="bookDesc" maxlength="3000" placeholder="この図鑑について"></textarea>
-
     </div>
-
     <div class="field">
-
       <label for="bookCover">表紙の写真（任意）</label>
-
       <input id="bookCover" type="file" accept="image/*">
-
       <div class="notice">新しい写真を選ばなければ、既存の表紙を維持します。</div>
-
     </div>
-
     <div class="form-actions">
-
       <button type="button" data-close="bookDialog">キャンセル</button>
-
       <button type="submit" class="primary">保存</button>
-
     </div>
-
   </form>
-
 </dialog>
 
 <dialog id="entryDialog">
-
   <form id="entryForm" class="dialog-inner">
-
     <h2 id="entryDialogTitle">項目を追加</h2>
-
     <input type="hidden" id="entryId">
-
     <div class="field">
-
       <label for="entryName">項目名 *</label>
-
       <input id="entryName" maxlength="200" required placeholder="名前・タイトルなど">
-
     </div>
-
     <div class="field">
-
       <label for="entryCategory">分類・タグ</label>
-
       <input id="entryCategory" maxlength="100" placeholder="例：植物、伝承、春">
-
     </div>
-
     <div class="field">
-
       <label for="entryDate">日付（任意）</label>
-
       <input id="entryDate" type="date">
-
     </div>
-
     <div class="field">
-
       <label for="entryDesc">説明・メモ</label>
-
       <textarea id="entryDesc" maxlength="20000" placeholder="気づいたこと、調べたこと、自由なメモ"></textarea>
-
     </div>
-
     <div class="field">
-
       <label for="entryPhotos">写真（複数選択可）</label>
-
       <input id="entryPhotos" type="file" accept="image/*" multiple>
-
       <div class="notice" id="photoNote">写真は端末内に保存されます。画像が多いと保存容量を使います。</div>
-
     </div>
-
     <div class="form-actions">
-
       <button type="button" data-close="entryDialog">キャンセル</button>
-
       <button type="submit" class="primary">保存</button>
-
     </div>
-
   </form>
-
 </dialog>
 
 <script>
-
 "use strict";
 
 const $ = id => document.getElementById(id);
-
 const DB_NAME = "MyEncyclopediaDB";
-
 const DB_VERSION = 1;
-
 const STORE = "records";
 
 let db;
-
 let state = { books: [] };
-
 let currentBookId = null;
-
 let saving = Promise.resolve();
 
 function uid() {
-
   return crypto.randomUUID ? crypto.randomUUID() :
-
     Date.now().toString(36) + Math.random().toString(36).slice(2);
-
 }
 
 function esc(value) {
-
   return String(value ?? "").replace(/[&<>"']/g, c => ({
-
     "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-
   })[c]);
-
 }
 
 function openDB() {
-
   return new Promise((resolve, reject) => {
-
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-
     request.onupgradeneeded = () => {
-
       if (!request.result.objectStoreNames.contains(STORE)) {
-
         request.result.createObjectStore(STORE);
-
       }
-
     };
-
     request.onsuccess = () => resolve(request.result);
-
     request.onerror = () => reject(request.error);
-
   });
-
 }
 
 function loadState() {
-
   return new Promise((resolve, reject) => {
-
     const tx = db.transaction(STORE, "readonly");
-
     const req = tx.objectStore(STORE).get("main");
-
     req.onsuccess = () => resolve(req.result || { books: [] });
-
     req.onerror = () => reject(req.error);
-
   });
-
 }
 
 function saveState() {
-
   saving = saving.then(() => new Promise((resolve, reject) => {
-
     const tx = db.transaction(STORE, "readwrite");
-
     tx.objectStore(STORE).put(state, "main");
-
     tx.oncomplete = resolve;
-
     tx.onerror = () => reject(tx.error);
-
     tx.onabort = () => reject(tx.error || new Error("保存が中断されました"));
-
   }));
 
   saving.catch(err => {
-
     console.error(err);
-
     alert("保存できませんでした。空き容量やブラウザの状態を確認してください。バックアップがある場合は大切に保管してください。");
-
   });
 
   return saving;
-
 }
 
 function currentBook() {
-
   return state.books.find(b => b.id === currentBookId);
-
 }
 
 function imageToDataURL(file) {
-
   return new Promise((resolve, reject) => {
-
     if (!file.type.startsWith("image/")) {
-
-      reject(new Error("画像ファイルを選んでください。")); return;
-
+      reject(new Error("画像ファイルを選んでください。"));
+      return;
     }
-
     const reader = new FileReader();
-
     reader.onload = () => resolve(reader.result);
-
     reader.onerror = () => reject(new Error("画像を読み込めませんでした。"));
-
     reader.readAsDataURL(file);
-
   });
-
 }
 
 async function readPhotos(files, existing = []) {
-
   const result = [...existing];
 
   for (const file of files) {
-
     if (result.length >= 10) {
-
       alert("写真は1項目につき最大10枚です。");
-
       break;
-
     }
-
     if (file.size > 8 * 1024 * 1024) {
-
       alert("8MBを超える写真は追加できませんでした：" + file.name);
-
       continue;
-
     }
-
-    try { result.push(await imageToDataURL(file)); }
-
-    catch (e) { alert(e.message); }
-
+    try {
+      result.push(await imageToDataURL(file));
+    } catch (e) {
+      alert(e.message);
+    }
   }
-
   return result;
-
 }
 
 function showLibrary() {
-
   currentBookId = null;
-
   $("libraryView").classList.remove("hidden");
-
   $("detailView").classList.add("hidden");
-
+  $("entryDetailView").classList.add("hidden");
   renderBooks();
-
 }
 
 function renderBooks() {
-
   $("bookCount").textContent = `全 ${state.books.length} 冊`;
 
   $("bookList").innerHTML = state.books.map(book => `
-
     <article class="book-card">
-
       <div class="book-cover">
-
-        ${book.cover
-
-          ? `<img src="${book.cover}" alt="">`
-
-          : "図"}
-
+        ${book.cover ? `<img src="${book.cover}" alt="">` : "図"}
       </div>
-
       <div class="book-info">
-
         <h3>${esc(book.name)}</h3>
-
         <p class="muted">${book.entries.length} 項目</p>
-
         <div class="card-actions">
-
           <button class="primary" data-open="${book.id}">開く</button>
-
           <button data-edit-book="${book.id}">編集</button>
-
           <button class="danger" data-delete-book="${book.id}">削除</button>
-
         </div>
-
       </div>
-
-    </article>`).join("");
+    </article>
+  `).join("");
 
   $("emptyBooks").classList.toggle("hidden", state.books.length !== 0);
-
 }
 
 function openBook(id) {
-
   currentBookId = id;
-
   const book = currentBook();
-
   if (!book) return showLibrary();
 
   $("libraryView").classList.add("hidden");
-
+  $("entryDetailView").classList.add("hidden");
   $("detailView").classList.remove("hidden");
-
   $("detailTitle").textContent = book.name;
-
   $("detailDescription").textContent = book.description || "";
-
   $("searchInput").value = "";
-
   renderEntries();
-
 }
 
 function renderEntries() {
-
   const book = currentBook();
-
   if (!book) return;
 
   const q = $("searchInput").value.trim().toLocaleLowerCase();
-
   const entries = book.entries.filter(e =>
-
     [e.name, e.category, e.description, e.date].join(" ")
-
       .toLocaleLowerCase().includes(q)
-
   );
 
   $("entryList").innerHTML = entries.map(e => `
-
-    <article class="entry-card" data-view-entry="${e.id}" tabindex="0">
-
+    <article class="entry-card" data-view-entry="${e.id}" tabindex="0"
+      role="button" aria-label="${esc(e.name)}の詳細を表示">
       <div class="entry-image">
-
         ${e.photos?.length
-
           ? `<img src="${e.photos[0]}" alt="">`
-
           : `<div class="entry-placeholder">写真なし</div>`}
-
       </div>
-
       <div class="entry-info">
-
         ${e.category ? `<span class="tag">${esc(e.category)}</span>` : ""}
-
         <h3>${esc(e.name)}</h3>
-
         ${e.date ? `<div class="muted">${esc(e.date)}</div>` : ""}
-
         <p>${esc(e.description || "")}</p>
-
         <div class="card-actions" style="margin-top:10px">
-
           <button data-edit-entry="${e.id}">編集</button>
-
           <button class="danger" data-delete-entry="${e.id}">削除</button>
-
         </div>
-
       </div>
-
-    </article>`).join("");
+    </article>
+  `).join("");
 
   $("emptyEntries").classList.toggle("hidden", entries.length !== 0);
 
   if (entries.length === 0 && q) {
-
     $("emptyEntries").querySelector("strong").textContent = "見つかりませんでした。";
-
     $("emptyEntries").lastChild.textContent = "検索語を変えてみてください。";
-
   } else {
-
     $("emptyEntries").querySelector("strong").textContent = "まだ項目がありません。";
-
+    $("emptyEntries").lastChild.textContent = "気になったものを、最初の一項目として登録しましょう。";
   }
-
 }
 
+/* 項目詳細画面 */
+function openEntryDetail(entryId) {
+  const book = currentBook();
+  const entry = book?.entries.find(e => e.id === entryId);
+  if (!book || !entry) return;
+
+  $("detailView").classList.add("hidden");
+  $("entryDetailView").classList.remove("hidden");
+
+  $("entryDetailTitle").textContent = entry.name;
+  $("entryDetailCategory").innerHTML = entry.category
+    ? `<span class="tag">${esc(entry.category)}</span>`
+    : "";
+
+  $("entryDetailDate").textContent = entry.date || "";
+  $("entryDetailDescription").textContent =
+    entry.description || "説明・メモはありません。";
+
+  $("entryDetailPhotos").innerHTML = (entry.photos || [])
+    .map((src, index) => `
+      <div class="entry-detail-photo">
+        <img src="${src}" alt="${esc(entry.name)} 写真${index + 1}">
+      </div>
+    `).join("");
+
+  $("editDetailEntryBtn").onclick = () => openEntryDialog(entry);
+
+  $("deleteDetailEntryBtn").onclick = async () => {
+    if (!confirm(`「${entry.name}」を削除しますか？`)) return;
+
+    book.entries = book.entries.filter(e => e.id !== entry.id);
+
+    try {
+      await saveState();
+      $("entryDetailView").classList.add("hidden");
+      $("detailView").classList.remove("hidden");
+      renderEntries();
+    } catch {
+      // 保存失敗時のエラーメッセージは saveState が表示します。
+    }
+  };
+}
+
+$("backToEntriesBtn").onclick = () => {
+  $("entryDetailView").classList.add("hidden");
+  $("detailView").classList.remove("hidden");
+  renderEntries();
+};
+
 function openBookDialog(book = null) {
-
   $("bookForm").reset();
-
   $("bookId").value = book?.id || "";
-
   $("bookName").value = book?.name || "";
-
   $("bookDesc").value = book?.description || "";
-
   $("bookDialogTitle").textContent = book ? "図鑑を編集" : "図鑑をつくる";
-
   $("bookDialog").showModal();
-
 }
 
 function openEntryDialog(entry = null) {
-
   $("entryForm").reset();
-
   $("entryId").value = entry?.id || "";
-
   $("entryName").value = entry?.name || "";
-
   $("entryCategory").value = entry?.category || "";
-
   $("entryDate").value = entry?.date || "";
-
   $("entryDesc").value = entry?.description || "";
 
   $("photoNote").textContent = entry?.photos?.length
-
     ? `現在 ${entry.photos.length} 枚の写真があります。新しく選んだ写真は追加されます。写真を外す機能は今後追加できます。`
-
     : "写真は端末内に保存されます。画像が多いと保存容量を使います。";
 
   $("entryDialogTitle").textContent = entry ? "項目を編集" : "項目を追加";
-
   $("entryDialog").showModal();
-
 }
 
 $("addBookBtn").onclick = () => openBookDialog();
-
 $("backBtn").onclick = showLibrary;
-
 $("addEntryBtn").onclick = () => openEntryDialog();
-
 $("editBookBtn").onclick = () => openBookDialog(currentBook());
-
 $("searchInput").addEventListener("input", renderEntries);
-
 $("printBtn").onclick = printBook;
 
 document.querySelectorAll("[data-close]").forEach(btn => {
-
   btn.onclick = () => $(btn.dataset.close).close();
-
 });
 
 $("bookForm").onsubmit = async event => {
-
   event.preventDefault();
 
   const id = $("bookId").value;
-
   const existing = state.books.find(b => b.id === id);
-
   const name = $("bookName").value.trim();
-
   if (!name) return;
 
   let cover = existing?.cover || "";
-
   const file = $("bookCover").files[0];
 
   if (file) {
-
     if (file.size > 8 * 1024 * 1024) {
-
-      alert("表紙の画像は8MB以下にしてください。"); return;
-
+      alert("表紙の画像は8MB以下にしてください。");
+      return;
     }
-
-    try { cover = await imageToDataURL(file); }
-
-    catch (e) { alert(e.message); return; }
-
+    try {
+      cover = await imageToDataURL(file);
+    } catch (e) {
+      alert(e.message);
+      return;
+    }
   }
 
   if (existing) {
-
     existing.name = name;
-
     existing.description = $("bookDesc").value.trim();
-
     existing.cover = cover;
-
   } else {
-
     state.books.unshift({
-
-      id: uid(), name, description: $("bookDesc").value.trim(),
-
-      cover, entries: []
-
+      id: uid(),
+      name,
+      description: $("bookDesc").value.trim(),
+      cover,
+      entries: []
     });
-
   }
 
   try {
-
     await saveState();
-
     $("bookDialog").close();
 
-    if (currentBookId) openBook(currentBookId);
-
-    else renderBooks();
-
+    if (currentBookId) {
+      openBook(currentBookId);
+    } else {
+      renderBooks();
+    }
   } catch {}
-
 };
 
 $("entryForm").onsubmit = async event => {
-
   event.preventDefault();
 
   const book = currentBook();
-
   if (!book) return;
 
   const id = $("entryId").value;
-
   const existing = book.entries.find(e => e.id === id);
-
   const files = [...$("entryPhotos").files];
-
   const existingPhotos = existing?.photos || [];
 
   if (files.length + existingPhotos.length > 10) {
-
     alert("写真は1項目につき最大10枚です。選ぶ枚数を減らしてください。");
-
     return;
-
   }
 
   const photos = await readPhotos(files, existingPhotos);
 
   const item = {
-
     id: id || uid(),
-
     name: $("entryName").value.trim(),
-
     category: $("entryCategory").value.trim(),
-
     date: $("entryDate").value,
-
     description: $("entryDesc").value.trim(),
-
     photos
-
   };
 
   if (!item.name) return;
 
-  if (existing) Object.assign(existing, item);
+  if (existing) {
+    Object.assign(existing, item);
+  } else {
+    book.entries.unshift(item);
+  }
 
-  else book.entries.unshift(item);
+  // 詳細画面から編集した場合は、保存後に更新された詳細画面を表示します。
+  const returnToDetail =
+    !$("entryDetailView").classList.contains("hidden");
 
   try {
-
     await saveState();
-
     $("entryDialog").close();
 
-    renderEntries();
-
+    if (returnToDetail) {
+      openEntryDetail(item.id);
+    } else {
+      renderEntries();
+    }
   } catch {}
-
 };
 
 $("bookList").addEventListener("click", async event => {
-
   const button = event.target.closest("button");
-
   if (!button) return;
 
-  if (button.dataset.open) openBook(button.dataset.open);
+  if (button.dataset.open) {
+    openBook(button.dataset.open);
+  }
 
   if (button.dataset.editBook) {
-
     openBookDialog(state.books.find(b => b.id === button.dataset.editBook));
-
   }
 
   if (button.dataset.deleteBook) {
-
     const book = state.books.find(b => b.id === button.dataset.deleteBook);
 
-    if (!book || !confirm(`「${book.name}」と中の項目をすべて削除します。先にバックアップを取ることをおすすめします。削除しますか？`)) return;
+    if (!book || !confirm(
+      `「${book.name}」と中の項目をすべて削除します。先にバックアップを取ることをおすすめします。削除しますか？`
+    )) return;
 
     state.books = state.books.filter(b => b.id !== book.id);
 
-    await saveState(); renderBooks();
-
+    try {
+      await saveState();
+      renderBooks();
+    } catch {}
   }
-
 });
 
 $("entryList").addEventListener("click", async event => {
-
   const button = event.target.closest("button");
 
   if (button?.dataset.editEntry) {
-
     event.stopPropagation();
-
-    const item = currentBook()?.entries.find(e => e.id === button.dataset.editEntry);
-
+    const item = currentBook()?.entries.find(
+      e => e.id === button.dataset.editEntry
+    );
     if (item) openEntryDialog(item);
-
     return;
-
   }
 
   if (button?.dataset.deleteEntry) {
-
     event.stopPropagation();
 
     const book = currentBook();
-
-    const item = book?.entries.find(e => e.id === button.dataset.deleteEntry);
+    const item = book?.entries.find(
+      e => e.id === button.dataset.deleteEntry
+    );
 
     if (!item || !confirm(`「${item.name}」を削除しますか？`)) return;
 
     book.entries = book.entries.filter(e => e.id !== item.id);
 
-    await saveState(); renderEntries();
-
+    try {
+      await saveState();
+      renderEntries();
+    } catch {}
     return;
-
   }
 
   const card = event.target.closest("[data-view-entry]");
-
-  if (card) {
-
-    const item = currentBook()?.entries.find(e => e.id === card.dataset.viewEntry);
-
-    if (item) openEntryDialog(item);
-
-  }
-
+  if (card) openEntryDetail(card.dataset.viewEntry);
 });
 
 $("entryList").addEventListener("keydown", event => {
-
-  if (event.key === "Enter" && event.target.matches("[data-view-entry]")) {
-
-    const item = currentBook()?.entries.find(e => e.id === event.target.dataset.viewEntry);
-
-    if (item) openEntryDialog(item);
-
+  if (
+    (event.key === "Enter" || event.key === " ") &&
+    event.target.matches("[data-view-entry]")
+  ) {
+    event.preventDefault();
+    openEntryDetail(event.target.dataset.viewEntry);
   }
-
 });
 
 $("backupBtn").onclick = async () => {
-
   try {
-
     await saving;
 
     const payload = {
-
       format: "my-encyclopedia-backup",
-
       version: 1,
-
       exportedAt: new Date().toISOString(),
-
       data: state
-
     };
 
-    const blob = new Blob([JSON.stringify(payload)], {type:"application/json"});
+    const blob = new Blob(
+      [JSON.stringify(payload)],
+      {type:"application/json"}
+    );
 
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
-
     a.href = url;
-
     a.download = `my-encyclopedia-${new Date().toISOString().slice(0,10)}.json`;
-
     a.click();
 
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-
   } catch {
-
     alert("バックアップを作成できませんでした。");
-
   }
-
 };
 
 $("restoreBtn").onclick = () => $("restoreFile").click();
 
 $("restoreFile").onchange = async event => {
-
   const file = event.target.files[0];
-
   event.target.value = "";
-
   if (!file) return;
 
-  if (!confirm("復元すると、現在の図鑑はバックアップの内容に置き換わります。先に現在のデータもバックアップしてください。続けますか？")) return;
+  if (!confirm(
+    "復元すると、現在の図鑑はバックアップの内容に置き換わります。先に現在のデータもバックアップしてください。続けますか？"
+  )) return;
 
   try {
-
     const payload = JSON.parse(await file.text());
-
     const incoming = payload.data;
 
-    if (payload.format !== "my-encyclopedia-backup" ||
-
-        !incoming || !Array.isArray(incoming.books) ||
-
-        !incoming.books.every(b => typeof b.id === "string" &&
-
-          typeof b.name === "string" && Array.isArray(b.entries))) {
-
+    if (
+      payload.format !== "my-encyclopedia-backup" ||
+      !incoming ||
+      !Array.isArray(incoming.books) ||
+      !incoming.books.every(b =>
+        typeof b.id === "string" &&
+        typeof b.name === "string" &&
+        Array.isArray(b.entries)
+      )
+    ) {
       throw new Error("対応していないバックアップ形式です。");
-
     }
 
     if (!incoming.books.every(b => b.entries.every(e =>
-
-      typeof e.id === "string" && typeof e.name === "string"))) {
-
+      typeof e.id === "string" && typeof e.name === "string"
+    ))) {
       throw new Error("項目データの形式が正しくありません。");
-
     }
 
     state = incoming;
-
     await saveState();
-
     showLibrary();
-
     alert("復元しました。図鑑の内容を確認してください。");
-
   } catch (e) {
-
     alert("復元できませんでした：" + e.message);
-
   }
-
 };
 
 function printBook() {
-
   const book = currentBook();
-
   if (!book) return;
 
   const area = $("printArea");
 
   area.innerHTML = `<div class="print-book">
-
     <section class="print-cover">
-
-      ${book.cover ? `<img src="${book.cover}" alt="" style="max-width:90%;max-height:55vh;object-fit:contain">` : ""}
-
+      ${book.cover
+        ? `<img src="${book.cover}" alt="" style="max-width:90%;max-height:55vh;object-fit:contain">`
+        : ""}
       <h1>${esc(book.name)}</h1>
-
       ${book.description ? `<p>${esc(book.description)}</p>` : ""}
-
       <p>${book.entries.length} 項目</p>
-
     </section>
 
     ${book.entries.map((e,i) => `
-
       <section class="print-entry">
-
         <div class="muted">${String(i+1).padStart(2,"0")}${e.category ? " ・ "+esc(e.category) : ""}</div>
-
         <h2>${esc(e.name)}</h2>
-
         ${e.date ? `<p>${esc(e.date)}</p>` : ""}
-
         ${(e.photos || []).map(src => `<img src="${src}" alt="">`).join("")}
-
         <p>${esc(e.description || "")}</p>
-
-      </section>`).join("")}
-
+      </section>
+    `).join("")}
   </div>`;
 
   const images = [...area.querySelectorAll("img")];
 
   Promise.all(images.map(img => {
-
     if (img.complete) return Promise.resolve();
 
     return new Promise(resolve => {
-
-      img.onload = resolve; img.onerror = resolve;
-
+      img.onload = resolve;
+      img.onerror = resolve;
     });
-
   })).then(() => setTimeout(() => window.print(), 250));
-
 }
 
 async function init() {
-
   try {
-
-    if (!("indexedDB" in window)) throw new Error("このブラウザでは端末内保存が利用できません。");
+    if (!("indexedDB" in window)) {
+      throw new Error("このブラウザでは端末内保存が利用できません。");
+    }
 
     db = await openDB();
-
     state = await loadState();
 
     if (!Array.isArray(state.books)) state = {books:[]};
 
     state.books.forEach(book => {
-
       if (!Array.isArray(book.entries)) book.entries = [];
-
-      book.entries.forEach(e => { if (!Array.isArray(e.photos)) e.photos = []; });
-
+      book.entries.forEach(e => {
+        if (!Array.isArray(e.photos)) e.photos = [];
+      });
     });
 
     renderBooks();
-
   } catch (e) {
-
-    alert("保存データを開けませんでした。プライベートブラウズではなく通常のブラウザで開いてください。\n" + e.message);
-
+    alert(
+      "保存データを開けませんでした。プライベートブラウズではなく通常のブラウザで開いてください。\n" +
+      e.message
+    );
   }
-
 }
 
 init();
-
 </script>
-
 </body>
-
 </html>
