@@ -159,16 +159,25 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
   #printArea { display:block !important; }
   .print-book { font-family:"Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif; color:#222; }
   .print-cover {
-    min-height:245mm; display:flex; flex-direction:column;
+    height:262mm; min-height:262mm; box-sizing:border-box;
+    display:flex; flex-direction:column;
     justify-content:center; align-items:center; text-align:center;
-    page-break-after:always; break-after:page; padding:12mm 5mm;
+    page-break-after:always; break-after:page; padding:10mm 5mm;
+    overflow:hidden;
   }
   .print-cover-image { display:block; width:auto; max-width:88%; max-height:115mm; object-fit:contain; margin:0 auto 15mm; }
   .print-cover-kicker { font-size:9pt; letter-spacing:.22em; color:#777; margin-bottom:8mm; }
   .print-cover h1 { font-size:30pt; line-height:1.45; font-weight:500; margin:0 0 8mm; overflow-wrap:anywhere; }
   .print-cover-description { max-width:135mm; font-size:11pt; white-space:pre-wrap; overflow-wrap:anywhere; }
   .print-cover-count { margin-top:14mm; padding-top:4mm; min-width:35mm; border-top:1px solid #aaa; font-size:9pt; color:#666; }
-  .print-book--single .print-entry { margin:0; padding:0; border:0; }
+  .print-book--single .print-entry {
+    margin:0; padding:0; border:0;
+    break-inside:avoid; page-break-inside:avoid;
+    min-height:262mm; box-sizing:border-box;
+  }
+  .print-book--single .print-entry + .print-entry {
+    break-before:page; page-break-before:always;
+  }
 
   /* 「効率よく配置」は、小さな項目を同じページに詰めて配置する。
      1項目がページ途中で分割されることは避ける。 */
@@ -222,7 +231,7 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
   }
   .accordion-sheet:last-child { break-after:auto; page-break-after:auto; }
   .accordion-panel {
-    min-width:0; min-height:0; padding:4mm 3mm; overflow:hidden;
+    min-width:0; min-height:0; box-sizing:border-box; padding:4mm 3mm; overflow:hidden;
     display:flex; flex-direction:column; gap:2mm;
     font-size:7pt; line-height:1.4; overflow-wrap:anywhere;
   }
@@ -240,7 +249,7 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
   .accordion-panel.cover-panel img { max-height:45mm; }
   .print-book--accordion .print-cover, .print-book--accordion .print-entry { display:none !important; }
   @page { size:A4 portrait; margin:17mm 16mm 18mm; }
-  @page accordion { size:297mm 210mm; margin:0; }
+  @page accordion { size:A4 landscape; margin:0; }
 }
 </style>
 </head>
@@ -322,7 +331,7 @@ footer { text-align:center; padding:24px; font-size:11px; color:var(--muted); }
     <h2>印刷・PDFの設定</h2>
     <div class="field"><label for="printLayout">レイアウト</label><select id="printLayout"><option value="single">1項目1ページ</option><option value="compact">複数項目を効率よく配置</option><option value="accordion">折本用（A4横・8面）</option></select><div class="notice">折本用は添付の折り図に合わせ、A4横1枚に8面（1項目＝1面）を配置します。8面を超える場合は、8面単位で用紙が追加されます。まず試し刷りして折り順を確認してください。</div></div>
     <div class="field"><label><input id="printIncludeCover" type="checkbox" checked> 表紙を付ける</label></div>
-    <div class="form-actions"><button type="button" data-close="printDialog">キャンセル</button><button type="submit" class="primary">印刷画面を開く</button></div>
+    <div class="form-actions"><button type="button" data-close="printDialog">キャンセル</button><button type="button" id="printNowBtn" class="primary">印刷画面を開く</button></div>
   </form>
 </dialog>
 <dialog id="cropDialog">
@@ -740,7 +749,12 @@ $("restoreFile").onchange = async event => {
     await saveState(); showLibrary(); alert("復元しました。図鑑の内容を確認してください。");
   } catch (e) { alert("復元できませんでした：" + e.message); }
 };
-$("printForm").onsubmit = event => { event.preventDefault(); $("printDialog").close(); printBook($("printLayout").value,$("printIncludeCover").checked); };
+$("printNowBtn").onclick = () => {
+  const layout = $("printLayout").value;
+  const includeCover = $("printIncludeCover").checked;
+  $("printDialog").close();
+  printBook(layout, includeCover);
+};
 function printBook(layout = "single", includeCover = true) {
   const book = currentBook();
   if (!book) return;
@@ -758,12 +772,12 @@ function printBook(layout = "single", includeCover = true) {
     const printStyle = document.createElement("style");
     printStyle.id = "accordionPrintRuntimeStyle";
     printStyle.textContent = `
-      @page { size: 297mm 210mm; margin: 0; }
+      @page { size: A4 landscape; margin: 0; }
       @media print {
-        html, body { width:297mm !important; min-width:297mm !important; margin:0 !important; padding:0 !important; }
-        #printArea { width:297mm !important; margin:0 !important; padding:0 !important; }
+        html, body { width:297mm !important; height:210mm !important; min-width:297mm !important; min-height:210mm !important; margin:0 !important; padding:0 !important; }
+        #printArea { width:297mm !important; height:auto !important; margin:0 !important; padding:0 !important; }
         .print-book--accordion { width:297mm !important; margin:0 !important; padding:0 !important; }
-        .accordion-sheet { width:297mm !important; height:210mm !important; margin:0 !important; padding:0 !important; }
+        .accordion-sheet { width:297mm !important; height:210mm !important; margin:0 !important; padding:0 !important; box-sizing:border-box !important; }
       }`;
     document.head.appendChild(printStyle);
     document.documentElement.classList.add("accordion-print-mode");
