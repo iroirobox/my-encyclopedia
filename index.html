@@ -213,8 +213,9 @@ body.print-preview-mode .accordion-sheet {
   #detailView .book-heading .toolbar button { padding:9px 2px; font-size:11px; }
 }
 #pdfStaging {
-  position:fixed; left:-100000px; top:0; z-index:-1;
+  position:absolute; left:0; top:0; z-index:10;
   width:210mm; pointer-events:none; background:#fff;
+  opacity:.01;
 }
 .pdf-page {
   width:210mm; height:297mm; box-sizing:border-box; overflow:hidden;
@@ -970,7 +971,8 @@ async function createPdfFromCurrentBook() {
 
   const staging = document.createElement("div");
   staging.id = "pdfStaging";
-  document.body.appendChild(staging);
+  staging.style.width = layout === "accordion" ? "297mm" : "210mm";
+  $("printArea").appendChild(staging);
 
   try {
     const pages = [];
