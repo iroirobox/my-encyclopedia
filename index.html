@@ -140,14 +140,24 @@ body.print-preview-mode .print-book--compact { max-width:210mm; }
 body.print-preview-mode .print-cover,
 body.print-preview-mode .print-entry { background:#fff; box-sizing:border-box; }
 body.print-preview-mode .print-cover {
-  min-height:250mm; padding:20mm; display:flex; flex-direction:column;
+  box-sizing:border-box; padding:20mm; display:flex; flex-direction:column;
   justify-content:center; align-items:center; text-align:center; margin-bottom:16px;
 }
-body.print-preview-mode .print-entry {
-  min-height:250mm; padding:18mm; margin-bottom:16px; border:1px solid #ddd;
+body.print-preview-mode .print-book--single .print-cover {
+  width:210mm; min-height:297mm;
+}
+body.print-preview-mode .print-book--single .print-entry {
+  width:210mm; min-height:297mm; box-sizing:border-box; padding:18mm;
+  margin-bottom:16px; border:1px solid #ddd;
+}
+body.print-preview-mode .print-book--compact .print-cover {
+  width:210mm; min-height:297mm; grid-column:1 / -1;
 }
 body.print-preview-mode .print-book--compact {
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8mm;
+}
+body.print-preview-mode .print-book--compact .print-entry {
+  min-height:0; box-sizing:border-box;
 }
 body.print-preview-mode .print-book--compact .print-cover { grid-column:1 / -1; }
 body.print-preview-mode .print-book--accordion {
@@ -208,7 +218,7 @@ body.print-preview-mode .accordion-sheet {
 
   /* 表紙は「表紙だけで1ページ」。項目数表示は入れない。 */
   .print-cover {
-    height:250mm; min-height:250mm; max-height:250mm; box-sizing:border-box;
+    height:297mm; min-height:297mm; max-height:297mm; box-sizing:border-box;
     display:flex; flex-direction:column; justify-content:center; align-items:center;
     text-align:center; padding:12mm 10mm; overflow:hidden;
     break-after:page; page-break-after:always;
@@ -219,23 +229,32 @@ body.print-preview-mode .accordion-sheet {
   .print-cover-description { max-width:135mm; font-size:11pt; white-space:pre-wrap; overflow-wrap:anywhere; margin:0; }
   .print-cover-count { display:none !important; }
 
-  /* 1項目1ページ。各項目を独立したページとして扱う。 */
+  /* 1項目1ページ。A4縦1枚そのものを1項目に割り当てる。 */
   .print-book--single .print-entry {
-    height:250mm; min-height:250mm; max-height:250mm; box-sizing:border-box;
-    margin:0; padding:0; border:0;
+    height:297mm; min-height:297mm; max-height:297mm; box-sizing:border-box;
+    margin:0; padding:15mm; border:0;
     break-inside:avoid; page-break-inside:avoid;
     break-after:page; page-break-after:always;
     overflow:hidden;
   }
+  .print-book--single .print-cover {
+    height:297mm; min-height:297mm; max-height:297mm;
+    margin:0; padding:15mm; box-sizing:border-box;
+    break-after:page; page-break-after:always;
+  }
   .print-book--single .print-entry:last-child { break-after:auto; page-break-after:auto; }
   .print-book--single .print-entry-photos img { max-height:52mm; }
 
-  /* 効率よく配置は従来どおり。 */
+  /* 効率よく配置：A4縦の幅を2列に使い、項目自身の高さだけを使う。 */
   .print-book--compact {
     display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
     column-gap:9mm; row-gap:8mm; align-items:start;
+    width:210mm; box-sizing:border-box;
   }
-  .print-book--compact .print-cover { grid-column:1 / -1; }
+  .print-book--compact .print-cover {
+    grid-column:1 / -1; height:297mm; min-height:297mm; max-height:297mm;
+    box-sizing:border-box; margin:0;
+  }
   .print-book--compact .print-entry {
     min-width:0; margin:0; padding:0 0 5mm; border-bottom:1px solid #d8d8d8;
     break-inside:avoid; page-break-inside:avoid;
@@ -259,36 +278,53 @@ body.print-preview-mode .accordion-sheet {
   .print-entry-description:empty { display:none; }
   img { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
 
-  /* 折本：A4横1枚を基準に、74.25mm×105mmの8面へ固定配置。 */
-  .print-book--accordion { font-family:"Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif; width:297mm !important; margin:0 !important; padding:0 !important; }
+  /* 折本：A4横1枚を基準に、74.25mm×105mmの8面へ固定配置。
+     印刷物には折線・外枠・フッターを出さず、各面の内側64×96mmだけを内容領域にする。 */
+  .print-book--accordion {
+    page:accordion;
+    font-family:"Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
+    width:297mm !important; margin:0 !important; padding:0 !important;
+  }
   .accordion-sheet {
     width:297mm !important; height:210mm !important; max-width:none !important; max-height:none !important;
     margin:0 !important; padding:0 !important; box-sizing:border-box !important;
     display:grid !important; grid-template-columns:repeat(4,74.25mm) !important;
     grid-template-rows:repeat(2,105mm) !important;
-    border:0.35mm solid #222; break-after:page; page-break-after:always;
-    overflow:hidden !important;
+    border:0 !important; outline:0 !important;
+    break-after:page; page-break-after:always; overflow:hidden !important;
   }
   .accordion-sheet:last-child { break-after:auto; page-break-after:auto; }
   .accordion-panel {
-    width:74.25mm !important; height:105mm !important; min-width:74.25mm !important; min-height:105mm !important;
-    box-sizing:border-box; padding:4mm 3mm; overflow:hidden;
-    display:flex; flex-direction:column; gap:2mm; font-size:7pt; line-height:1.4; overflow-wrap:anywhere;
+    width:74.25mm !important; height:105mm !important;
+    min-width:74.25mm !important; min-height:105mm !important;
+    box-sizing:border-box; padding:0 !important; margin:0 !important;
+    border:0 !important; outline:0 !important;
+    overflow:hidden; display:flex; align-items:center; justify-content:center;
+    font-size:7pt; line-height:1.4; overflow-wrap:anywhere;
   }
-  .accordion-panel:not(:nth-child(4n+1)) { border-left:0.2mm dashed #777; }
-  .accordion-panel:nth-child(-n+4) { border-bottom:0.2mm dashed #777; }
   .accordion-panel .panel-inner {
-    width:100%; height:100%; min-height:0; display:flex; flex-direction:column;
-    gap:2mm; overflow:hidden;
+    width:64mm !important; height:96mm !important;
+    box-sizing:border-box; margin:0 auto; padding:3mm 2.5mm;
+    display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start;
+    gap:1.5mm; overflow:hidden;
   }
   .accordion-panel.is-upside-down .panel-inner { transform:rotate(180deg); }
   .accordion-panel h2 { font-size:10pt; line-height:1.3; margin:0; }
-  .accordion-panel img { display:block; max-width:100%; max-height:27mm; object-fit:contain; margin:1mm auto; }
-  .accordion-panel .panel-description { white-space:pre-wrap; overflow-wrap:anywhere; font-size:6.5pt; }
-  .accordion-panel.cover-panel .panel-inner { justify-content:center; text-align:center; }
-  .accordion-panel.cover-panel img { max-height:38mm; }
-  .print-book--accordion .print-cover, .print-book--accordion .print-entry { display:none !important; }
-  @page { size:A4 portrait; margin:0; }
+  .accordion-panel img {
+    display:block; width:auto; max-width:100%; max-height:27mm;
+    object-fit:contain; margin:1mm auto;
+  }
+  .accordion-panel .panel-description {
+    white-space:pre-wrap; overflow-wrap:anywhere; font-size:6.5pt;
+    line-height:1.45; margin:0;
+  }
+  .accordion-panel.cover-panel .panel-inner { justify-content:center; text-align:center; align-items:center; }
+  .accordion-panel.cover-panel img { max-width:52mm; max-height:38mm; }
+  .print-book--accordion .print-cover,
+  .print-book--accordion .print-entry { display:none !important; }
+  @page portraitbook { size:A4 portrait; margin:0; }
+  @page accordion { size:A4 landscape; margin:0; }
+  .print-book--single, .print-book--compact { page:portraitbook; }
 }
 </style>
 </head>
@@ -830,11 +866,11 @@ function printBook(layout = "single", includeCover = true) {
     const printStyle = document.createElement("style");
     printStyle.id = "accordionPrintRuntimeStyle";
     printStyle.textContent = `
-      @page { size: A4 landscape; margin: 0; }
+      @page accordion { size: A4 landscape; margin: 0; }
       @media print {
         html, body { width:297mm !important; min-width:297mm !important; margin:0 !important; padding:0 !important; }
         #printArea { width:297mm !important; margin:0 !important; padding:0 !important; }
-        .print-book--accordion { width:297mm !important; margin:0 !important; padding:0 !important; }
+        .print-book--accordion { page:accordion !important; width:297mm !important; margin:0 !important; padding:0 !important; }
         .accordion-sheet { width:297mm !important; height:210mm !important; margin:0 !important; padding:0 !important; }
       }`;
     document.head.appendChild(printStyle);
