@@ -215,7 +215,6 @@ body.print-preview-mode .accordion-sheet {
 #pdfStaging {
   position:absolute; left:0; top:0; z-index:10;
   width:210mm; pointer-events:none; background:#fff;
-  opacity:.01;
 }
 .pdf-page {
   width:210mm; height:297mm; box-sizing:border-box; overflow:hidden;
@@ -950,7 +949,7 @@ function buildPdfPage(layout, book, entries, includeCover, pageIndex, totalPages
     page.classList.add("pdf-page--cover");
     page.innerHTML = `${book.cover ? `<img class="pdf-cover-image" src="${esc(book.cover)}" alt="">` : ""}<div class="pdf-cover-kicker">MY ENCYCLOPEDIA</div><h1>${pdfEsc(book.name)}</h1>${book.description ? `<p class="pdf-cover-description">${pdfEsc(book.description)}</p>` : ""}`;
   } else {
-    if (layout === "single") page.innerHTML = buildPdfEntryHTML(entries[0], pageIndex - (includeCover ? 1 : 0), book.entries.length, false);
+    if (layout === "single") page.innerHTML = buildPdfEntryHTML(entries[0], Math.max(0, pageIndex - (includeCover ? 1 : 0)), book.entries.length, false);
     else page.innerHTML = `<div class="pdf-compact-grid">${entries.map((e,i) => buildPdfEntryHTML(e, e._index, book.entries.length, true)).join("")}</div>`;
   }
   return page;
