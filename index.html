@@ -213,30 +213,22 @@ body.print-preview-mode .accordion-sheet {
   #detailView .book-heading .toolbar button { padding:9px 2px; font-size:11px; }
 }
 #pdfStaging {
-  position:absolute; left:0; top:0; z-index:10;
-  width:210mm; pointer-events:none; background:#fff;
+  position:absolute; left:-100000px; top:0; width:297mm; pointer-events:none;
+  background:#fff;
 }
-.pdf-page {
-  width:210mm; height:297mm; box-sizing:border-box; overflow:hidden;
-  background:#fff; color:#222; font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
-}
- .pdf-page--single { display:block; padding:18mm 16mm 16mm; box-sizing:border-box; overflow:hidden; }
-.pdf-page--single .pdf-single-card { all:initial; display:block; width:100%; height:100%; box-sizing:border-box; overflow:hidden; color:#222; font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; writing-mode:horizontal-tb; text-align:left; letter-spacing:normal; word-spacing:normal; white-space:normal; }
-.pdf-page--single .pdf-single-card * { box-sizing:border-box; writing-mode:horizontal-tb; letter-spacing:normal; word-spacing:normal; white-space:normal; text-align:left; min-width:0; }
-.pdf-single-card .pdf-entry-heading { display:block; width:100%; margin:0 0 5mm; padding:0; }
-.pdf-single-card .pdf-entry-number { display:block; width:100%; font-size:9pt; line-height:1.55; color:#666; margin:0 0 2mm; padding:1mm 0 0; overflow:visible; }
-.pdf-single-card h2 { display:block; width:100%; font-size:20pt; line-height:1.4; font-weight:500; margin:0 0 2mm; padding:0; letter-spacing:normal; word-spacing:normal; overflow-wrap:anywhere; word-break:break-all; overflow:visible; }
-.pdf-single-card .pdf-entry-meta { display:block; width:100%; font-size:10pt; line-height:1.5; color:#666; margin:0; padding:0; letter-spacing:normal; word-spacing:normal; white-space:normal; overflow-wrap:anywhere; word-break:break-all; }
-.pdf-single-card .pdf-entry-photos { display:flex; width:100%; height:70mm; box-sizing:border-box; gap:5mm; margin:6mm 0; align-items:center; justify-content:center; overflow:hidden; }
-.pdf-single-card .pdf-entry-photo { flex:1 1 0; min-width:0; height:70mm; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-.pdf-single-card .pdf-entry-photo img { display:block; width:auto; height:auto; max-width:100%; max-height:70mm; object-fit:contain; }
-.pdf-single-card .pdf-entry-description { display:block; width:100%; margin:6mm 0 0; padding:0; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-all; font-size:11pt; line-height:1.85; letter-spacing:normal; word-spacing:normal; }
+/* PDFは画面用CSSと完全に分離。PDF描画はCanvasへ直接行うため、ここは待機領域のみ。 */
+.pdf-pdf-canvas-page { display:block; }
+
+/* PDFコンパクト用の旧レイアウトだけを維持。1ページ・折本はCanvas描画なのでこのCSSを使わない。 */
+.pdf-page { width:210mm; height:297mm; box-sizing:border-box; overflow:hidden; background:#fff; color:#222; font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; }
+.pdf-page--compact { display:block; padding:0; }
 .pdf-page--cover { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:15mm; }
 .pdf-cover-image { display:block; width:auto; max-width:82%; max-height:92mm; object-fit:contain; margin:0 auto 10mm; }
 .pdf-cover-kicker { font-size:9pt; letter-spacing:.22em; color:#777; margin-bottom:6mm; }
 .pdf-page--cover h1 { font-size:30pt; line-height:1.35; font-weight:500; margin:0 0 6mm; overflow-wrap:anywhere; }
 .pdf-cover-description { max-width:135mm; font-size:11pt; white-space:pre-wrap; overflow-wrap:anywhere; margin:0; }
-.pdf-entry-card { color:#222; }
+.pdf-compact-grid { width:100%; height:100%; box-sizing:border-box; padding:12mm; display:grid; grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr); gap:7mm; }
+.pdf-entry-card { color:#222; min-width:0; min-height:0; overflow:hidden; }
 .pdf-entry-heading { margin-bottom:5mm; }
 .pdf-entry-number { font-size:9pt; letter-spacing:.08em; color:#666; }
 .pdf-entry-card h2 { font-size:19pt; line-height:1.45; font-weight:500; margin:2mm 0; overflow-wrap:anywhere; }
@@ -245,7 +237,6 @@ body.print-preview-mode .accordion-sheet {
 .pdf-entry-photo { display:flex; justify-content:center; align-items:center; min-width:0; }
 .pdf-entry-photo img { display:block; width:auto; max-width:100%; max-height:52mm; object-fit:contain; }
 .pdf-entry-description { white-space:pre-wrap; overflow-wrap:anywhere; margin:5mm 0 0; line-height:1.75; }
-.pdf-compact-grid { width:100%; height:100%; box-sizing:border-box; padding:12mm; display:grid; grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr); gap:7mm; }
 .pdf-entry-card--compact { min-width:0; min-height:0; overflow:hidden; padding:0 0 3mm; border-bottom:1px solid #d8d8d8; }
 .pdf-entry-card--compact .pdf-entry-heading { margin-bottom:2mm; }
 .pdf-entry-card--compact h2 { font-size:14pt; margin:1mm 0; }
@@ -253,34 +244,6 @@ body.print-preview-mode .accordion-sheet {
 .pdf-entry-card--compact .pdf-entry-photos { gap:3mm; margin:3mm 0; }
 .pdf-entry-card--compact .pdf-entry-photo img { max-height:43mm; }
 .pdf-entry-card--compact .pdf-entry-description { font-size:8.5pt; margin:2mm 0 0; line-height:1.55; }
-.pdf-page--accordion { width:297mm; height:210mm; }
-.pdf-accordion-grid { width:297mm; height:210mm; display:grid; grid-template-columns:repeat(4,74.25mm); grid-template-rows:repeat(2,105mm); overflow:hidden; }
- .pdf-panel { width:74.25mm; height:105mm; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:7pt; line-height:1.4; overflow-wrap:anywhere; word-break:break-all; letter-spacing:normal; word-spacing:normal; text-align:left; }
-.pdf-panel-inner { width:64mm; height:96mm; box-sizing:border-box; padding:4mm 2.8mm 3mm; display:flex; flex-direction:column; align-items:stretch; gap:1mm; overflow:hidden; letter-spacing:normal; word-spacing:normal; text-align:left; min-width:0; }
-.pdf-panel-photos { width:100%; height:18mm; min-height:18mm; display:flex; gap:1.5mm; align-items:center; justify-content:center; overflow:hidden; margin:0; flex:0 0 18mm; min-width:0; }
-.pdf-panel-photo-wrap { flex:1 1 0; min-width:0; width:0; height:18mm; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-.pdf-panel-photos img.pdf-panel-photo { display:block; width:auto; height:auto; max-width:100%; max-height:18mm; object-fit:contain; margin:0; }
-.pdf-panel--upside .pdf-panel-inner { transform:rotate(180deg); transform-origin:center center; }
-.pdf-panel h2 { width:100%; min-width:0; flex:0 0 auto; font-size:9pt; line-height:1.22; margin:0; padding:0; max-height:8mm; overflow:hidden; letter-spacing:normal; word-spacing:normal; overflow-wrap:anywhere; word-break:break-all; }
-.pdf-panel img { display:block; width:auto; max-width:100%; max-height:27mm; object-fit:contain; margin:1mm auto; }
-.pdf-panel .panel-description { width:100%; min-width:0; flex:1 1 auto; min-height:0; max-height:none; overflow:hidden; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-all; font-size:6.5pt; line-height:1.28; margin:0; letter-spacing:normal; word-spacing:normal; }
-.pdf-panel-entry-inner { min-height:0; }
-.pdf-panel-number, .pdf-panel-meta { width:100%; min-width:0; flex:0 0 auto; overflow:hidden; overflow-wrap:anywhere; word-break:break-all; }
-.pdf-panel-title { width:100%; min-width:0; flex:0 0 auto; }
-.pdf-panel-photo { flex:0 0 18mm; min-width:0; }
-.pdf-panel-description { flex:1 1 auto; min-height:0; }
-.pdf-panel-entry-inner.pdf-fit-tight { gap:1mm; }
-.pdf-panel-entry-inner.pdf-fit-tight .pdf-panel-photo { max-height:23mm; }
-.pdf-panel-entry-inner.pdf-fit-tight .pdf-panel-description { line-height:1.2; }
-.pdf-panel-entry-inner.pdf-fit-tighter { gap:.6mm; }
-.pdf-panel-entry-inner.pdf-fit-tighter .pdf-panel-photo { max-height:19mm; }
-.pdf-panel-entry-inner.pdf-fit-tighter .pdf-panel-description { line-height:1.12; }
-.pdf-panel-entry-inner.pdf-fit-small { gap:.4mm; }
-.pdf-panel-entry-inner.pdf-fit-small .pdf-panel-photo { max-height:16mm; }
-.pdf-panel-entry-inner.pdf-fit-small .pdf-panel-description { line-height:1.05; }
-.pdf-panel--cover .pdf-panel-inner { justify-content:center; text-align:center; align-items:center; }
-.pdf-panel--cover img { max-width:52mm; max-height:38mm; }
-.pdf-panel--blank { background:#fff; }
 
 @media print {
   :root { color-scheme: light; }
@@ -988,38 +951,286 @@ function buildPdfPage(layout, book, entries, includeCover, pageIndex, totalPages
   return page;
 }
 
-async function fitAccordionPanels(staging) {
-  const panels = [...staging.querySelectorAll(".pdf-panel-entry-inner")];
-  for (const inner of panels) {
-    const title = inner.querySelector(".pdf-panel-title");
-    const meta = inner.querySelector(".pdf-panel-meta");
-    const desc = inner.querySelector(".pdf-panel-description");
-    if (!desc) continue;
 
-    // Gridで各領域を固定し、文字だけを段階的に縮める。
-    const steps = [
-      [1, 10, 6.5, 1.38],
-      [.96, 9.6, 6.25, 1.32],
-      [.92, 9.2, 6.0, 1.26],
-      [.88, 8.8, 5.7, 1.20],
-      [.84, 8.4, 5.4, 1.14]
-    ];
-    for (const [scale, titlePt, descPt, line] of steps) {
-      inner.style.fontSize = `${7 * scale}pt`;
-      if (title) title.style.fontSize = `${titlePt}pt`;
-      if (meta) meta.style.fontSize = `${7 * scale}pt`;
-      if (desc) { desc.style.fontSize = `${descPt}pt`; desc.style.lineHeight = String(line); }
-      // Force layout before checking the actual grid overflow.
-      void inner.offsetHeight;
-      if (inner.scrollHeight <= inner.clientHeight + 1) break;
+function loadPdfImage(src) {
+  return new Promise(resolve => {
+    if (!src) { resolve(null); return; }
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+function pdfMmToPx(mm, scale) {
+  return Math.round(mm * 96 / 25.4 * scale);
+}
+
+function pdfFont(fontSize, weight = 400) {
+  return `${weight} ${fontSize}px "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif`;
+}
+
+function pdfWrapText(ctx, text, maxWidth) {
+  const lines = [];
+  const paragraphs = String(text ?? "").replace(/\r\n/g, "\n").split("\n");
+  for (const paragraph of paragraphs) {
+    if (!paragraph) { lines.push(""); continue; }
+    let line = "";
+    for (const ch of Array.from(paragraph)) {
+      const test = line + ch;
+      if (line && ctx.measureText(test).width > maxWidth) {
+        lines.push(line);
+        line = ch;
+      } else {
+        line = test;
+      }
     }
+    if (line) lines.push(line);
+  }
+  return lines;
+}
+
+function pdfDrawWrapped(ctx, text, x, y, maxWidth, fontSize, lineHeight, maxHeight, options = {}) {
+  ctx.font = pdfFont(fontSize, options.weight || 400);
+  ctx.fillStyle = options.color || "#222";
+  ctx.textAlign = options.align || "left";
+  ctx.textBaseline = "top";
+  const lines = pdfWrapText(ctx, text, maxWidth);
+  const maxLines = Math.max(0, Math.floor(maxHeight / lineHeight));
+  const shown = lines.slice(0, maxLines);
+  shown.forEach((line, i) => ctx.fillText(line, x, y + i * lineHeight));
+  return { lines: shown, height: shown.length * lineHeight, truncated: lines.length > shown.length };
+}
+
+async function pdfDrawContainedImage(ctx, src, x, y, w, h) {
+  const img = await loadPdfImage(src);
+  if (!img) return;
+  const ratio = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+  const dw = img.naturalWidth * ratio;
+  const dh = img.naturalHeight * ratio;
+  ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+}
+
+function pdfCanvasSize(layout, scale = 3) {
+  return layout === "accordion"
+    ? { w: pdfMmToPx(297, scale), h: pdfMmToPx(210, scale) }
+    : { w: pdfMmToPx(210, scale), h: pdfMmToPx(297, scale) };
+}
+
+function pdfMakeCanvas(layout, scale = 3) {
+  const {w,h} = pdfCanvasSize(layout, scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, w, h);
+  return {canvas, ctx, scale};
+}
+
+async function pdfDrawCover(ctx, book, layout, scale) {
+  const pageW = layout === "accordion" ? 297 : 210;
+  const pageH = layout === "accordion" ? 210 : 297;
+  const margin = layout === "accordion" ? 10 : 15;
+  const cx = pdfMmToPx(pageW / 2, scale);
+  let y = pdfMmToPx(layout === "accordion" ? 38 : 62, scale);
+  const maxImageW = pdfMmToPx(layout === "accordion" ? 95 : 145, scale);
+  const maxImageH = pdfMmToPx(layout === "accordion" ? 55 : 92, scale);
+  if (book.cover) {
+    const img = await loadPdfImage(book.cover);
+    if (img) {
+      const r = Math.min(maxImageW / img.naturalWidth, maxImageH / img.naturalHeight);
+      const w = img.naturalWidth * r, h = img.naturalHeight * r;
+      ctx.drawImage(img, cx - w/2, y, w, h);
+      y += h + pdfMmToPx(8, scale);
+    }
+  }
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = "#777";
+  ctx.font = pdfFont(pdfMmToPx(3.2, scale), 400);
+  ctx.fillText("MY ENCYCLOPEDIA", cx, y);
+  y += pdfMmToPx(8, scale);
+
+  let titleSize = pdfMmToPx(10, scale);
+  const titleMax = pdfMmToPx(pageW - margin*2, scale);
+  while (titleSize > pdfMmToPx(6.5, scale)) {
+    ctx.font = pdfFont(titleSize, 500);
+    if (pdfWrapText(ctx, book.name || "", titleMax).length <= 2) break;
+    titleSize -= pdfMmToPx(.5, scale);
+  }
+  const titleLine = titleSize * 1.35;
+  const titleResult = pdfDrawWrapped(ctx, book.name || "", cx, y, titleMax, titleSize, titleLine, pdfMmToPx(30, scale), {weight:500, align:"center"});
+  y += titleResult.height + pdfMmToPx(5, scale);
+  if (book.description) {
+    pdfDrawWrapped(ctx, book.description, cx, y, pdfMmToPx(135, scale), pdfMmToPx(3.7, scale), pdfMmToPx(6, scale), pdfMmToPx(55, scale), {align:"center"});
+  }
+}
+
+async function pdfDrawSingleEntry(ctx, entry, index, total, book, scale) {
+  const pageW = pdfMmToPx(210, scale), pageH = pdfMmToPx(297, scale);
+  const marginX = pdfMmToPx(16, scale), top = pdfMmToPx(18, scale), bottom = pdfMmToPx(16, scale);
+  const contentW = pageW - marginX * 2;
+  let y = top;
+
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = "#666";
+  ctx.font = pdfFont(pdfMmToPx(3.2, scale), 400);
+  ctx.fillText(`${String(index + 1).padStart(2,"0")} / ${String(total).padStart(2,"0")}`, marginX, y);
+  y += pdfMmToPx(7, scale);
+
+  let titleSize = pdfMmToPx(7.0, scale);
+  const titleMaxH = pdfMmToPx(25, scale);
+  while (titleSize >= pdfMmToPx(4.8, scale)) {
+    ctx.font = pdfFont(titleSize, 500);
+    const lines = pdfWrapText(ctx, entry.name || "", contentW);
+    if (lines.length <= 2) break;
+    titleSize -= pdfMmToPx(.4, scale);
+  }
+  const titleLine = titleSize * 1.38;
+  const titleResult = pdfDrawWrapped(ctx, entry.name || "", marginX, y, contentW, titleSize, titleLine, titleMaxH, {weight:500});
+  y += Math.max(titleResult.height, titleLine) + pdfMmToPx(2, scale);
+
+  const meta = [entry.category, entry.date].filter(Boolean).join(" ・ ");
+  if (meta) {
+    ctx.font = pdfFont(pdfMmToPx(3.1, scale));
+    ctx.fillStyle = "#666";
+    pdfDrawWrapped(ctx, meta, marginX, y, contentW, pdfMmToPx(3.1, scale), pdfMmToPx(4.6, scale), pdfMmToPx(9, scale));
+    y += pdfMmToPx(6, scale);
+  }
+
+  const photoTop = y + pdfMmToPx(4, scale);
+  const photoH = pdfMmToPx(70, scale);
+  const photos = (entry.photos || []).slice(0, 10);
+  if (photos.length) {
+    const cols = Math.min(2, photos.length);
+    const gap = pdfMmToPx(5, scale);
+    const cellW = (contentW - gap * (cols - 1)) / cols;
+    for (let i = 0; i < photos.length; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const rows = Math.ceil(photos.length / cols);
+      const cellH = Math.min(photoH, (photoH - gap * (rows - 1)) / rows);
+      const px = marginX + col * (cellW + gap);
+      const py = photoTop + row * (cellH + gap);
+      await pdfDrawContainedImage(ctx, photos[i], px, py, cellW, cellH);
+    }
+    y = photoTop + photoH + pdfMmToPx(6, scale);
+  }
+
+  const descMaxH = pageH - bottom - y;
+  if (entry.description && descMaxH > pdfMmToPx(10, scale)) {
+    let size = pdfMmToPx(3.7, scale);
+    while (size >= pdfMmToPx(2.8, scale)) {
+      const lineH = size * 1.72;
+      ctx.font = pdfFont(size);
+      const lines = pdfWrapText(ctx, entry.description, contentW);
+      if (lines.length * lineH <= descMaxH) break;
+      size -= pdfMmToPx(.25, scale);
+    }
+    pdfDrawWrapped(ctx, entry.description, marginX, y, contentW, size, size * 1.72, descMaxH);
+  }
+}
+
+async function pdfDrawAccordionPanel(ctx, item, book, scale, upside) {
+  const panelW = pdfMmToPx(74.25, scale), panelH = pdfMmToPx(105, scale);
+  const innerW = pdfMmToPx(64, scale), innerH = pdfMmToPx(96, scale);
+  const padX = pdfMmToPx(2.8, scale), padTop = pdfMmToPx(4, scale), padBottom = pdfMmToPx(3, scale);
+  const ox = (panelW - innerW) / 2, oy = (panelH - innerH) / 2;
+  const draw = async () => {
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.fillStyle = "#222";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    let y = padTop;
+
+    if (!item) { ctx.restore(); return; }
+    if (item.kind === "cover") {
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#777";
+      ctx.font = pdfFont(pdfMmToPx(2.2, scale));
+      ctx.fillText("MY ENCYCLOPEDIA", innerW/2, y);
+      y += pdfMmToPx(7, scale);
+      if (book.cover) {
+        const img = await loadPdfImage(book.cover);
+        if (img) {
+          const maxW = innerW - padX*2, maxH = pdfMmToPx(38, scale);
+          const r = Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight);
+          const w=img.naturalWidth*r,h=img.naturalHeight*r;
+          ctx.drawImage(img, (innerW-w)/2, y, w, h); y += h + pdfMmToPx(3,scale);
+        }
+      }
+      let fs=pdfMmToPx(5.5,scale);
+      while(fs>=pdfMmToPx(3.8,scale)){
+        ctx.font=pdfFont(fs,500);
+        if(pdfWrapText(ctx,book.name||"",innerW-padX*2).length<=3)break;
+        fs-=pdfMmToPx(.3,scale);
+      }
+      pdfDrawWrapped(ctx,book.name||"",innerW/2,y,innerW-padX*2,fs,fs*1.3,pdfMmToPx(22,scale),{weight:500,align:"center"});
+      ctx.restore(); return;
+    }
+
+    const entry=item.entry;
+    ctx.font=pdfFont(pdfMmToPx(2.1,scale)); ctx.fillStyle="#666";
+    ctx.fillText(`${String(item.number).padStart(2,"0")} / ${String(book.entries.length).padStart(2,"0")}`,padX,y);
+    y += pdfMmToPx(5,scale);
+
+    let titleSize=pdfMmToPx(3.1,scale), titleH=pdfMmToPx(16,scale);
+    while(titleSize>=pdfMmToPx(2.2,scale)){
+      ctx.font=pdfFont(titleSize,500);
+      const lines=pdfWrapText(ctx,entry.name||"",innerW-padX*2);
+      if(lines.length<=3 && lines.length*titleSize*1.25<=titleH)break;
+      titleSize-=pdfMmToPx(.18,scale);
+    }
+    const tr=pdfDrawWrapped(ctx,entry.name||"",padX,y,innerW-padX*2,titleSize,titleSize*1.25,titleH,{weight:500});
+    y += Math.max(tr.height,titleSize*1.25) + pdfMmToPx(1,scale);
+
+    const meta=[entry.category,entry.date].filter(Boolean).join(" ・ ");
+    if(meta){
+      const ms=pdfMmToPx(2.0,scale);
+      pdfDrawWrapped(ctx,meta,padX,y,innerW-padX*2,ms,ms*1.25,pdfMmToPx(7,scale),{color:"#666"});
+      y += pdfMmToPx(5,scale);
+    }
+
+    const photoH=pdfMmToPx(18,scale), photoGap=pdfMmToPx(1.5,scale);
+    const photos=(entry.photos||[]).slice(0,2);
+    if(photos.length){
+      const cellW=(innerW-padX*2-photoGap*(photos.length-1))/photos.length;
+      for(let i=0;i<photos.length;i++) await pdfDrawContainedImage(ctx,photos[i],padX+i*(cellW+photoGap),y,cellW,photoH);
+      y += photoH + pdfMmToPx(2,scale);
+    }
+
+    const descH=innerH-padBottom-y;
+    if(entry.description && descH>pdfMmToPx(6,scale)){
+      let ds=pdfMmToPx(2.05,scale);
+      while(ds>=pdfMmToPx(1.35,scale)){
+        ctx.font=pdfFont(ds);
+        const lines=pdfWrapText(ctx,entry.description,innerW-padX*2);
+        if(lines.length*ds*1.25<=descH)break;
+        ds-=pdfMmToPx(.1,scale);
+      }
+      pdfDrawWrapped(ctx,entry.description,padX,y,innerW-padX*2,ds,ds*1.25,descH);
+    }
+    ctx.restore();
+  };
+
+  if (!upside) {
+    await draw();
+  } else {
+    ctx.save();
+    ctx.translate(panelW, panelH);
+    ctx.rotate(Math.PI);
+    await draw();
+    ctx.restore();
   }
 }
 
 async function createPdfFromCurrentBook() {
   const book = currentBook();
   if (!book) return;
-  if (!window.html2canvas || !window.jspdf?.jsPDF) {
+  if (!window.jspdf?.jsPDF) {
     alert("PDF作成用のライブラリを読み込めませんでした。インターネット接続を確認して、もう一度お試しください。");
     return;
   }
@@ -1029,63 +1240,75 @@ async function createPdfFromCurrentBook() {
   const oldText = btn ? btn.textContent : "";
   if (btn) { btn.disabled = true; btn.textContent = "PDFを作成中…"; }
 
-  const staging = document.createElement("div");
-  staging.id = "pdfStaging";
-  staging.style.width = layout === "accordion" ? "297mm" : "210mm";
-  $("printArea").appendChild(staging);
-
+  const scale = 3;
   try {
-    const pages = [];
-    if (layout === "accordion") {
-      const logical = [];
-      if (includeCover) logical.push({kind:"cover"});
-      book.entries.forEach((entry,index) => logical.push({kind:"entry",entry,number:index+1}));
-      if (!logical.length) logical.push({kind:"cover"});
-      const positionMap = [6,5,4,3,7,0,1,2];
-      for (let offset=0; offset<logical.length; offset+=8) {
-        const group = logical.slice(offset, offset+8);
-        while (group.length < 8) group.push(null);
-        pages.push(buildPdfPage("accordion", book, positionMap.map(i => group[i]), includeCover, pages.length, 0));
-      }
-    } else if (layout === "single") {
-      if (includeCover) pages.push(buildPdfPage("single", book, [], true, 0, 0));
-      book.entries.forEach((entry,index) => pages.push(buildPdfPage("single", book, [{...entry,_index:index}], includeCover, pages.length, 0)));
-      if (!pages.length) pages.push(buildPdfPage("single", book, [], false, 0, 0));
-    } else {
-      if (includeCover) pages.push(buildPdfPage("compact", book, [], true, 0, 0));
-      for (let i=0;i<book.entries.length;i+=4) {
-        const group = book.entries.slice(i,i+4).map((e,j)=>({...e,_index:i+j}));
-        pages.push(buildPdfPage("compact", book, group, includeCover, pages.length, 0));
-      }
-      if (!pages.length) pages.push(buildPdfPage("compact", book, [], false, 0, 0));
-    }
-
-    for (const page of pages) staging.appendChild(page);
-    await waitForImages(staging);
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    if (layout === "accordion") {
-      await fitAccordionPanels(staging);
-      await new Promise(r => requestAnimationFrame(r));
-    }
-
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({orientation:layout === "accordion" ? "landscape" : "portrait", unit:"mm", format:"a4", compress:true});
-    const pageWidth = layout === "accordion" ? 297 : 210;
-    const pageHeight = layout === "accordion" ? 210 : 297;
+    const orientation = layout === "accordion" ? "landscape" : "portrait";
+    const pdf = new jsPDF({orientation, unit:"mm", format:"a4", compress:true});
+    let pageNo = 0;
 
-    for (let i=0;i<pages.length;i++) {
-      const canvas = await window.html2canvas(pages[i], {scale:3, useCORS:false, backgroundColor:"#ffffff", logging:false, imageTimeout:15000});
-      if (i > 0) pdf.addPage("a4", layout === "accordion" ? "landscape" : "portrait");
-      pdf.addImage(canvas.toDataURL("image/jpeg",0.94), "JPEG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
+    const addCanvas = (canvas) => {
+      if (pageNo > 0) pdf.addPage("a4", orientation);
+      const w = layout === "accordion" ? 297 : 210;
+      const h = layout === "accordion" ? 210 : 297;
+      pdf.addImage(canvas.toDataURL("image/jpeg",0.95), "JPEG", 0, 0, w, h, undefined, "FAST");
+      pageNo++;
+    };
+
+    if (layout === "single") {
+      if (includeCover) {
+        const {canvas,ctx}=pdfMakeCanvas("single",scale);
+        await pdfDrawCover(ctx,book,"single",scale);
+        addCanvas(canvas);
+      }
+      for (let i=0;i<book.entries.length;i++) {
+        const {canvas,ctx}=pdfMakeCanvas("single",scale);
+        await pdfDrawSingleEntry(ctx,book.entries[i],i,book.entries.length,book,scale);
+        addCanvas(canvas);
+      }
+      if (!pageNo) {
+        const {canvas}=pdfMakeCanvas("single",scale); addCanvas(canvas);
+      }
+    } else if (layout === "compact") {
+      /* コンパクトは既存のHTML方式を変更しない。 */
+      const staging=document.createElement("div"); staging.id="pdfStaging"; staging.style.width="210mm"; $("printArea").appendChild(staging);
+      try {
+        const cover = includeCover ? buildPdfPage("compact",book,[],true,0,0) : null;
+        if (cover) { staging.appendChild(cover); await waitForImages(staging); const c=await window.html2canvas(cover,{scale:3,backgroundColor:"#fff",logging:false}); addCanvas(c); }
+        for(let i=0;i<book.entries.length;i+=4){
+          const page=buildPdfPage("compact",book,book.entries.slice(i,i+4).map((e,j)=>({...e,_index:i+j})),includeCover,pageNo,0);
+          staging.innerHTML=""; staging.appendChild(page); await waitForImages(staging); const c=await window.html2canvas(page,{scale:3,backgroundColor:"#fff",logging:false}); addCanvas(c);
+        }
+        if(!pageNo){const {canvas}=pdfMakeCanvas("compact",scale);addCanvas(canvas);}
+      } finally { staging.remove(); }
+    } else {
+      const logical=[];
+      if(includeCover) logical.push({kind:"cover"});
+      book.entries.forEach((entry,index)=>logical.push({kind:"entry",entry,number:index+1}));
+      if(!logical.length) logical.push(null);
+      const positionMap=[6,5,4,3,7,0,1,2];
+      for(let offset=0;offset<logical.length;offset+=8){
+        const group=logical.slice(offset,offset+8); while(group.length<8)group.push(null);
+        const {canvas,ctx}=pdfMakeCanvas("accordion",scale);
+        const panelW=pdfMmToPx(74.25,scale), panelH=pdfMmToPx(105,scale);
+        for(let pos=0;pos<8;pos++){
+          const item=group[positionMap[pos]];
+          ctx.save(); ctx.translate((pos%4)*panelW,Math.floor(pos/4)*panelH);
+          await pdfDrawAccordionPanel(ctx,item,book,scale,pos<4);
+          ctx.restore();
+        }
+        addCanvas(canvas);
+      }
     }
-    const filename = `my-encyclopedia-${new Date().toISOString().slice(0,10)}.pdf`;
+
+    const filename=`my-encyclopedia-${new Date().toISOString().slice(0,10)}.pdf`;
     pdf.save(filename);
-  } catch (error) {
+  } catch(error) {
     console.error(error);
-    alert("PDFを作成できませんでした。もう一度お試しください。\n" + (error?.message || ""));
+    alert("PDFを作成できませんでした。もう一度お試しください。\n"+(error?.message||""));
   } finally {
-    staging.remove();
-    if (btn) { btn.disabled = false; btn.textContent = oldText || "PDFを作成"; }
+    const staging=document.getElementById("pdfStaging"); if(staging) staging.remove();
+    if(btn){btn.disabled=false;btn.textContent=oldText||"PDFを作成";}
   }
 }
 
