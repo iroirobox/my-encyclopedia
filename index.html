@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f7f5ef">
 <title>私の図鑑</title>
+<!-- PDF作成用。画面表示には影響せず、「PDFを作成」を押したときだけ使用します。 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg:#f7f5ef; --paper:#fffefa; --ink:#34382f;
@@ -209,6 +212,50 @@ body.print-preview-mode .accordion-sheet {
   #detailView .book-heading .toolbar { gap:4px; }
   #detailView .book-heading .toolbar button { padding:9px 2px; font-size:11px; }
 }
+#pdfStaging {
+  position:fixed; left:-100000px; top:0; z-index:-1;
+  width:210mm; pointer-events:none; background:#fff;
+}
+.pdf-page {
+  width:210mm; height:297mm; box-sizing:border-box; overflow:hidden;
+  background:#fff; color:#222; font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+}
+.pdf-page--single { display:flex; align-items:center; justify-content:center; padding:15mm; }
+.pdf-page--single .pdf-entry-card { width:100%; height:100%; box-sizing:border-box; overflow:hidden; }
+.pdf-page--cover { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:15mm; }
+.pdf-cover-image { display:block; width:auto; max-width:82%; max-height:92mm; object-fit:contain; margin:0 auto 10mm; }
+.pdf-cover-kicker { font-size:9pt; letter-spacing:.22em; color:#777; margin-bottom:6mm; }
+.pdf-page--cover h1 { font-size:30pt; line-height:1.35; font-weight:500; margin:0 0 6mm; overflow-wrap:anywhere; }
+.pdf-cover-description { max-width:135mm; font-size:11pt; white-space:pre-wrap; overflow-wrap:anywhere; margin:0; }
+.pdf-entry-card { color:#222; }
+.pdf-entry-heading { margin-bottom:5mm; }
+.pdf-entry-number { font-size:9pt; letter-spacing:.08em; color:#666; }
+.pdf-entry-card h2 { font-size:19pt; line-height:1.45; font-weight:500; margin:2mm 0; overflow-wrap:anywhere; }
+.pdf-entry-meta { font-size:9pt; color:#666; margin:0; }
+.pdf-entry-photos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4mm; margin:5mm 0; }
+.pdf-entry-photo { display:flex; justify-content:center; align-items:center; min-width:0; }
+.pdf-entry-photo img { display:block; width:auto; max-width:100%; max-height:52mm; object-fit:contain; }
+.pdf-entry-description { white-space:pre-wrap; overflow-wrap:anywhere; margin:5mm 0 0; line-height:1.75; }
+.pdf-compact-grid { width:100%; height:100%; box-sizing:border-box; padding:12mm; display:grid; grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr); gap:7mm; }
+.pdf-entry-card--compact { min-width:0; min-height:0; overflow:hidden; padding:0 0 3mm; border-bottom:1px solid #d8d8d8; }
+.pdf-entry-card--compact .pdf-entry-heading { margin-bottom:2mm; }
+.pdf-entry-card--compact h2 { font-size:14pt; margin:1mm 0; }
+.pdf-entry-card--compact .pdf-entry-number,.pdf-entry-card--compact .pdf-entry-meta { font-size:7.5pt; }
+.pdf-entry-card--compact .pdf-entry-photos { gap:3mm; margin:3mm 0; }
+.pdf-entry-card--compact .pdf-entry-photo img { max-height:43mm; }
+.pdf-entry-card--compact .pdf-entry-description { font-size:8.5pt; margin:2mm 0 0; line-height:1.55; }
+.pdf-page--accordion { width:297mm; height:210mm; }
+.pdf-accordion-grid { width:297mm; height:210mm; display:grid; grid-template-columns:repeat(4,74.25mm); grid-template-rows:repeat(2,105mm); overflow:hidden; }
+.pdf-panel { width:74.25mm; height:105mm; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:7pt; line-height:1.4; overflow-wrap:anywhere; }
+.pdf-panel-inner { width:64mm; height:96mm; box-sizing:border-box; padding:3mm 2.5mm; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:1.5mm; overflow:hidden; }
+.pdf-panel--upside .pdf-panel-inner { transform:rotate(180deg); }
+.pdf-panel h2 { font-size:10pt; line-height:1.3; margin:0; }
+.pdf-panel img { display:block; width:auto; max-width:100%; max-height:27mm; object-fit:contain; margin:1mm auto; }
+.pdf-panel .panel-description { white-space:pre-wrap; overflow-wrap:anywhere; font-size:6.5pt; line-height:1.45; margin:0; }
+.pdf-panel--cover .pdf-panel-inner { justify-content:center; text-align:center; align-items:center; }
+.pdf-panel--cover img { max-width:52mm; max-height:38mm; }
+.pdf-panel--blank { background:#fff; }
+
 @media print {
   :root { color-scheme: light; }
   body { background:white !important; color:#222 !important; font-size:10.5pt; line-height:1.75; }
@@ -406,7 +453,7 @@ body.print-preview-mode .accordion-sheet {
     <h2>印刷・PDFの設定</h2>
     <div class="field"><label for="printLayout">レイアウト</label><select id="printLayout"><option value="single">1項目1ページ</option><option value="compact">複数項目を効率よく配置</option><option value="accordion">折本用（A4横・8面）</option></select><div class="notice">折本用は添付の折り図に合わせ、A4横1枚に8面（1項目＝1面）を配置します。8面を超える場合は、8面単位で用紙が追加されます。まず試し刷りして折り順を確認してください。</div></div>
     <div class="field"><label><input id="printIncludeCover" type="checkbox" checked> 表紙を付ける</label></div>
-    <div class="form-actions"><button type="button" data-close="printDialog">キャンセル</button><button type="button" id="printNowBtn" class="primary">印刷用ページを表示</button></div>
+    <div class="form-actions"><button type="button" data-close="printDialog">キャンセル</button><button type="button" id="printNowBtn" class="primary">PDF作成画面を表示</button></div>
   </form>
 </dialog>
 <dialog id="cropDialog">
@@ -828,6 +875,8 @@ $("printNowBtn").onclick = () => {
   const layout = $("printLayout").value;
   const includeCover = $("printIncludeCover").checked;
   $("printDialog").close();
+  window.currentPrintLayout = layout;
+  window.currentPrintIncludeCover = includeCover;
   printBook(layout, includeCover);
 };
 
@@ -837,10 +886,12 @@ function ensurePrintPreviewBar() {
   bar = document.createElement("div");
   bar.id = "printPreviewBar";
   bar.innerHTML = `
-    <div class="preview-help">印刷用ページです。iPhone / iPad は<strong>共有 → プリント</strong>、PCは<strong>Ctrl+P</strong>で印刷してください。</div>
-    <button type="button" id="printPreviewBack">図鑑に戻る</button>`;
+    <div class="preview-help">PDF作成用プレビューです。URL・日付・ページ番号などのブラウザ印刷情報はPDFには入りません。</div>
+    <button type="button" id="makePdfBtn" class="primary">PDFを作成</button>
+    <button type="button" id="printPreviewBack">戻る</button>`;
   document.body.appendChild(bar);
   $("printPreviewBack").onclick = exitPrintPreview;
+  $("makePdfBtn").onclick = () => createPdfFromCurrentBook();
   return bar;
 }
 
@@ -850,6 +901,126 @@ function exitPrintPreview() {
   $("printArea").style.display = "none";
   const style = document.getElementById("accordionPrintRuntimeStyle");
   if (style) style.remove();
+}
+
+function waitForImages(root) {
+  const images = [...root.querySelectorAll("img")];
+  return Promise.all(images.map(img => {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise(resolve => {
+      const done = () => { img.removeEventListener("load", done); img.removeEventListener("error", done); resolve(); };
+      img.addEventListener("load", done, {once:true});
+      img.addEventListener("error", done, {once:true});
+    });
+  }));
+}
+
+function pdfEsc(value) {
+  return esc(value == null ? "" : String(value));
+}
+
+function buildPdfEntryHTML(entry, index, total, compact = false) {
+  const photos = (entry.photos || []).slice(0, compact ? 2 : (entry.photos || []).length);
+  return `<article class="pdf-entry-card${compact ? " pdf-entry-card--compact" : ""}">
+    <header class="pdf-entry-heading">
+      <div class="pdf-entry-number">${String(index + 1).padStart(2,"0")} / ${String(total).padStart(2,"0")}</div>
+      <h2>${pdfEsc(entry.name)}</h2>
+      ${[entry.category,entry.date].filter(Boolean).length ? `<p class="pdf-entry-meta">${[entry.category,entry.date].filter(Boolean).map(pdfEsc).join(" ・ ")}</p>` : ""}
+    </header>
+    ${photos.length ? `<div class="pdf-entry-photos">${photos.map(src => `<div class="pdf-entry-photo"><img src="${esc(src)}" alt=""></div>`).join("")}</div>` : ""}
+    ${entry.description ? `<p class="pdf-entry-description">${pdfEsc(entry.description)}</p>` : ""}
+  </article>`;
+}
+
+function buildPdfPage(layout, book, entries, includeCover, pageIndex, totalPages) {
+  const page = document.createElement("section");
+  page.className = `pdf-page pdf-page--${layout}`;
+  if (layout === "accordion") {
+    page.innerHTML = `<div class="pdf-accordion-grid">${entries.map((item, position) => {
+      if (!item) return `<div class="pdf-panel pdf-panel--blank"></div>`;
+      const upside = position < 4;
+      if (item.kind === "cover") {
+        return `<div class="pdf-panel${upside ? " pdf-panel--upside" : ""} pdf-panel--cover"><div class="pdf-panel-inner"><div class="panel-kicker">MY ENCYCLOPEDIA</div>${book.cover ? `<img src="${esc(book.cover)}" alt="">` : ""}<h2>${pdfEsc(book.name)}</h2>${book.description ? `<div class="panel-description">${pdfEsc(book.description)}</div>` : ""}</div></div>`;
+      }
+      const entry = item.entry;
+      return `<div class="pdf-panel${upside ? " pdf-panel--upside" : ""}"><div class="pdf-panel-inner"><div>${String(item.number).padStart(2,"0")} / ${book.entries.length}</div><h2>${pdfEsc(entry.name)}</h2><div>${[entry.category,entry.date].filter(Boolean).map(pdfEsc).join(" ・ ")}</div>${(entry.photos || []).slice(0,2).map(src => `<img src="${esc(src)}" alt="">`).join("")}<div class="panel-description">${pdfEsc(entry.description || "")}</div></div></div>`;
+    }).join("")}</div>`;
+  } else if (pageIndex === 0 && includeCover) {
+    page.classList.add("pdf-page--cover");
+    page.innerHTML = `${book.cover ? `<img class="pdf-cover-image" src="${esc(book.cover)}" alt="">` : ""}<div class="pdf-cover-kicker">MY ENCYCLOPEDIA</div><h1>${pdfEsc(book.name)}</h1>${book.description ? `<p class="pdf-cover-description">${pdfEsc(book.description)}</p>` : ""}`;
+  } else {
+    if (layout === "single") page.innerHTML = buildPdfEntryHTML(entries[0], pageIndex - (includeCover ? 1 : 0), book.entries.length, false);
+    else page.innerHTML = `<div class="pdf-compact-grid">${entries.map((e,i) => buildPdfEntryHTML(e, e._index, book.entries.length, true)).join("")}</div>`;
+  }
+  return page;
+}
+
+async function createPdfFromCurrentBook() {
+  const book = currentBook();
+  if (!book) return;
+  if (!window.html2canvas || !window.jspdf?.jsPDF) {
+    alert("PDF作成用のライブラリを読み込めませんでした。インターネット接続を確認して、もう一度お試しください。");
+    return;
+  }
+  const layout = window.currentPrintLayout || "single";
+  const includeCover = window.currentPrintIncludeCover !== false;
+  const btn = $("makePdfBtn");
+  const oldText = btn ? btn.textContent : "";
+  if (btn) { btn.disabled = true; btn.textContent = "PDFを作成中…"; }
+
+  const staging = document.createElement("div");
+  staging.id = "pdfStaging";
+  document.body.appendChild(staging);
+
+  try {
+    const pages = [];
+    if (layout === "accordion") {
+      const logical = [];
+      if (includeCover) logical.push({kind:"cover"});
+      book.entries.forEach((entry,index) => logical.push({kind:"entry",entry,number:index+1}));
+      if (!logical.length) logical.push({kind:"cover"});
+      const positionMap = [6,5,4,3,7,0,1,2];
+      for (let offset=0; offset<logical.length; offset+=8) {
+        const group = logical.slice(offset, offset+8);
+        while (group.length < 8) group.push(null);
+        pages.push(buildPdfPage("accordion", book, positionMap.map(i => group[i]), includeCover, pages.length, 0));
+      }
+    } else if (layout === "single") {
+      if (includeCover) pages.push(buildPdfPage("single", book, [], true, 0, 0));
+      book.entries.forEach((entry,index) => pages.push(buildPdfPage("single", book, [entry], includeCover, pages.length, 0)));
+      if (!pages.length) pages.push(buildPdfPage("single", book, [], false, 0, 0));
+    } else {
+      if (includeCover) pages.push(buildPdfPage("compact", book, [], true, 0, 0));
+      for (let i=0;i<book.entries.length;i+=4) {
+        const group = book.entries.slice(i,i+4).map((e,j)=>({...e,_index:i+j}));
+        pages.push(buildPdfPage("compact", book, group, includeCover, pages.length, 0));
+      }
+      if (!pages.length) pages.push(buildPdfPage("compact", book, [], false, 0, 0));
+    }
+
+    for (const page of pages) staging.appendChild(page);
+    await waitForImages(staging);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:layout === "accordion" ? "landscape" : "portrait", unit:"mm", format:"a4", compress:true});
+    const pageWidth = layout === "accordion" ? 297 : 210;
+    const pageHeight = layout === "accordion" ? 210 : 297;
+
+    for (let i=0;i<pages.length;i++) {
+      const canvas = await window.html2canvas(pages[i], {scale:2.2, useCORS:false, backgroundColor:"#ffffff", logging:false, imageTimeout:15000});
+      if (i > 0) pdf.addPage("a4", layout === "accordion" ? "landscape" : "portrait");
+      pdf.addImage(canvas.toDataURL("image/jpeg",0.94), "JPEG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
+    }
+    const filename = `my-encyclopedia-${new Date().toISOString().slice(0,10)}.pdf`;
+    pdf.save(filename);
+  } catch (error) {
+    console.error(error);
+    alert("PDFを作成できませんでした。もう一度お試しください。\n" + (error?.message || ""));
+  } finally {
+    staging.remove();
+    if (btn) { btn.disabled = false; btn.textContent = oldText || "PDFを作成"; }
+  }
 }
 
 function printBook(layout = "single", includeCover = true) {
