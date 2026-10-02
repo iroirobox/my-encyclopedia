@@ -220,10 +220,16 @@ body.print-preview-mode .accordion-sheet {
   width:210mm; height:297mm; box-sizing:border-box; overflow:hidden;
   background:#fff; color:#222; font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
 }
-.pdf-page--single { display:flex; align-items:center; justify-content:center; padding:15mm; }
-.pdf-page--single .pdf-entry-card { width:100%; height:100%; box-sizing:border-box; overflow:hidden; writing-mode:horizontal-tb; text-align:left; letter-spacing:0 !important; word-spacing:0 !important; }
-.pdf-page--single .pdf-entry-card * { writing-mode:horizontal-tb; text-align:left; letter-spacing:0 !important; word-spacing:0 !important; }
-.pdf-page--single .pdf-entry-description { white-space:pre-wrap; word-break:break-word; overflow-wrap:anywhere; }
+.pdf-page--single { display:block; padding:15mm; box-sizing:border-box; }
+.pdf-page--single .pdf-single-card { width:100%; height:100%; box-sizing:border-box; overflow:hidden; color:#222; font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; writing-mode:horizontal-tb; text-align:left; letter-spacing:0; word-spacing:0; }
+.pdf-single-card .pdf-entry-heading { margin:0 0 5mm; }
+.pdf-single-card .pdf-entry-number { font-size:9pt; line-height:1.3; color:#666; letter-spacing:0; margin:0 0 1.5mm; }
+.pdf-single-card h2 { font-size:20pt; line-height:1.35; font-weight:500; margin:0 0 2mm; padding:0; letter-spacing:0; word-spacing:0; overflow-wrap:anywhere; }
+.pdf-single-card .pdf-entry-meta { font-size:10pt; line-height:1.4; color:#666; margin:0; padding:0; letter-spacing:0; word-spacing:0; }
+.pdf-single-card .pdf-entry-photos { display:flex; width:100%; height:70mm; box-sizing:border-box; gap:5mm; margin:6mm 0; align-items:center; justify-content:center; overflow:hidden; }
+.pdf-single-card .pdf-entry-photo { flex:1 1 0; min-width:0; height:70mm; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.pdf-single-card .pdf-entry-photo img { display:block; width:auto; height:auto; max-width:100%; max-height:70mm; object-fit:contain; }
+.pdf-single-card .pdf-entry-description { margin:6mm 0 0; padding:0; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; font-size:11pt; line-height:1.85; letter-spacing:0; word-spacing:0; }
 .pdf-page--cover { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:15mm; }
 .pdf-cover-image { display:block; width:auto; max-width:82%; max-height:92mm; object-fit:contain; margin:0 auto 10mm; }
 .pdf-cover-kicker { font-size:9pt; letter-spacing:.22em; color:#777; margin-bottom:6mm; }
@@ -249,27 +255,25 @@ body.print-preview-mode .accordion-sheet {
 .pdf-page--accordion { width:297mm; height:210mm; }
 .pdf-accordion-grid { width:297mm; height:210mm; display:grid; grid-template-columns:repeat(4,74.25mm); grid-template-rows:repeat(2,105mm); overflow:hidden; }
 .pdf-panel { width:74.25mm; height:105mm; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:7pt; line-height:1.4; overflow-wrap:anywhere; letter-spacing:normal; word-spacing:normal; text-align:left; }
-.pdf-panel-inner { width:64mm; height:96mm; box-sizing:border-box; padding:3mm 2.5mm; display:grid; grid-template-rows:auto auto auto minmax(0,1fr); align-items:start; overflow:hidden; letter-spacing:0; word-spacing:0; text-align:left; }
-.pdf-panel-entry-inner { gap:0; }
+.pdf-panel-inner { width:64mm; height:96mm; box-sizing:border-box; padding:3mm 2.5mm; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:1.5mm; overflow:hidden; letter-spacing:normal; word-spacing:normal; text-align:left; }
+.pdf-panel-photos { flex:0 0 18mm; display:flex; width:100%; height:18mm; min-height:18mm; gap:1.5mm; align-items:center; justify-content:center; overflow:hidden; margin:1mm 0; }
+.pdf-panel-photo-wrap { flex:1 1 0; min-width:0; height:18mm; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.pdf-panel-photos img.pdf-panel-photo { display:block; width:auto; height:auto; max-width:100%; max-height:18mm; object-fit:contain; margin:0; }
 .pdf-panel--upside .pdf-panel-inner { transform:rotate(180deg); }
-.pdf-panel h2 { font-size:10pt; line-height:1.3; margin:0 0 1mm; letter-spacing:0; word-spacing:0; }
-.pdf-panel .pdf-panel-meta { margin-bottom:1mm; }
-.pdf-panel-photos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.5mm; width:100%; min-height:0; align-items:center; justify-items:center; margin:1mm 0 1.5mm; overflow:hidden; }
-.pdf-panel-photos:has(img:only-child) { grid-template-columns:1fr; }
-.pdf-panel-photos img { display:block; width:100%; height:18mm; max-width:100%; max-height:18mm; object-fit:contain; margin:0; }
-.pdf-panel .panel-description { min-height:0; overflow:hidden; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; font-size:6.5pt; line-height:1.4; margin:0; letter-spacing:0; word-spacing:0; }
+.pdf-panel h2 { font-size:10pt; line-height:1.3; margin:0; letter-spacing:normal; word-spacing:normal; }
+.pdf-panel img { display:block; width:auto; max-width:100%; max-height:27mm; object-fit:contain; margin:1mm auto; }
+.pdf-panel .panel-description { white-space:pre-wrap; overflow-wrap:anywhere; font-size:6.5pt; line-height:1.45; margin:0; letter-spacing:normal; word-spacing:normal; }
 .pdf-panel-entry-inner { min-height:0; }
-.pdf-panel-entry-inner.pdf-fit-tight { grid-template-rows:auto auto auto minmax(0,1fr); }
-.pdf-panel-entry-inner.pdf-fit-tight .pdf-panel-photos { margin-top:.5mm; margin-bottom:1mm; }
-.pdf-panel-entry-inner.pdf-fit-tight .pdf-panel-photos img { height:15mm; max-height:15mm; }
-.pdf-panel-entry-inner.pdf-fit-tight .pdf-panel-description { line-height:1.28; }
-.pdf-panel-entry-inner.pdf-fit-tighter .pdf-panel-photos img { height:13mm; max-height:13mm; }
-.pdf-panel-entry-inner.pdf-fit-tighter .pdf-panel-description { line-height:1.18; }
-.pdf-panel-entry-inner.pdf-fit-small .pdf-panel-title { font-size:8.8pt; }
-.pdf-panel-entry-inner.pdf-fit-small .pdf-panel-meta,
-.pdf-panel-entry-inner.pdf-fit-small .pdf-panel-number { font-size:6.2pt; }
-.pdf-panel-entry-inner.pdf-fit-small .pdf-panel-photos img { height:11mm; max-height:11mm; }
-.pdf-panel-entry-inner.pdf-fit-small .pdf-panel-description { font-size:5.7pt; line-height:1.12; }
+.pdf-panel-number, .pdf-panel-meta { flex:0 0 auto; }
+.pdf-panel-title { flex:0 0 auto; }
+.pdf-panel-photo { flex:0 0 auto; }
+.pdf-panel-description { flex:0 1 auto; min-height:0; }
+.pdf-panel-entry-inner.pdf-fit-tight { gap:1mm; }
+.pdf-panel-entry-inner.pdf-fit-tight .pdf-panel-photo { max-height:23mm; }
+.pdf-panel-entry-inner.pdf-fit-tight .pdf-panel-description { line-height:1.3; }
+.pdf-panel-entry-inner.pdf-fit-tighter { gap:.6mm; }
+.pdf-panel-entry-inner.pdf-fit-tighter .pdf-panel-photo { max-height:19mm; }
+.pdf-panel-entry-inner.pdf-fit-tighter .pdf-panel-description { line-height:1.2; }
 .pdf-panel-entry-inner.pdf-fit-small { gap:.4mm; }
 .pdf-panel-entry-inner.pdf-fit-small .pdf-panel-photo { max-height:16mm; }
 .pdf-panel-entry-inner.pdf-fit-small .pdf-panel-description { line-height:1.1; }
@@ -940,9 +944,10 @@ function pdfEsc(value) {
   return esc(value == null ? "" : String(value));
 }
 
-function buildPdfEntryHTML(entry, index, total, compact = false) {
+function buildPdfEntryHTML(entry, index, total, compact = false, single = false) {
   const photos = (entry.photos || []).slice(0, compact ? 2 : (entry.photos || []).length);
-  return `<article class="pdf-entry-card${compact ? " pdf-entry-card--compact" : ""}">
+  const cardClass = single ? "pdf-single-card" : `pdf-entry-card${compact ? " pdf-entry-card--compact" : ""}`;
+  return `<article class="${cardClass}">
     <header class="pdf-entry-heading">
       <div class="pdf-entry-number">${String(index + 1).padStart(2,"0")} / ${String(total).padStart(2,"0")}</div>
       <h2>${pdfEsc(entry.name)}</h2>
@@ -966,13 +971,17 @@ function buildPdfPage(layout, book, entries, includeCover, pageIndex, totalPages
       const entry = item.entry;
       const totalItems = book.entries.length;
       const meta = [entry.category, entry.date].filter(Boolean).map(pdfEsc).join(" ・ ");
-      return `<div class="pdf-panel${upside ? " pdf-panel--upside" : ""}"><div class="pdf-panel-inner pdf-panel-entry-inner"><div class="pdf-panel-number">${String(item.number).padStart(2,"0")} / ${String(totalItems).padStart(2,"0")}</div><h2 class="pdf-panel-title">${pdfEsc(entry.name)}</h2>${meta ? `<div class="pdf-panel-meta">${meta}</div>` : ""}${(entry.photos || []).slice(0,2).length ? `<div class="pdf-panel-photos">${(entry.photos || []).slice(0,2).map(src => `<img class="pdf-panel-photo" src="${esc(src)}" alt="">`).join("")}</div>` : `<div class="pdf-panel-photos"></div>`}<div class="panel-description pdf-panel-description">${pdfEsc(entry.description || "")}</div></div></div>`;
+      return `<div class="pdf-panel${upside ? " pdf-panel--upside" : ""}"><div class="pdf-panel-inner pdf-panel-entry-inner"><div class="pdf-panel-number">${String(item.number).padStart(2,"0")} / ${String(totalItems).padStart(2,"0")}</div><h2 class="pdf-panel-title">${pdfEsc(entry.name)}</h2>${meta ? `<div class="pdf-panel-meta">${meta}</div>` : ""}${(entry.photos || []).slice(0,2).length ? `<div class="pdf-panel-photos">${(entry.photos || []).slice(0,2).map(src => `<div class="pdf-panel-photo-wrap"><img class="pdf-panel-photo" src="${esc(src)}" alt=""></div>`).join("")}</div>` : ""}<div class="panel-description pdf-panel-description">${pdfEsc(entry.description || "")}</div></div></div>`;
     }).join("")}</div>`;
   } else if (pageIndex === 0 && includeCover) {
     page.classList.add("pdf-page--cover");
     page.innerHTML = `${book.cover ? `<img class="pdf-cover-image" src="${esc(book.cover)}" alt="">` : ""}<div class="pdf-cover-kicker">MY ENCYCLOPEDIA</div><h1>${pdfEsc(book.name)}</h1>${book.description ? `<p class="pdf-cover-description">${pdfEsc(book.description)}</p>` : ""}`;
   } else {
-    if (layout === "single") page.innerHTML = buildPdfEntryHTML(entries[0], Math.max(0, pageIndex - (includeCover ? 1 : 0)), book.entries.length, false);
+    if (layout === "single") {
+      const entry = entries[0];
+      const entryIndex = entry && Number.isInteger(entry._index) ? entry._index : Math.max(0, pageIndex - (includeCover ? 1 : 0));
+      page.innerHTML = entry ? buildPdfEntryHTML(entry, entryIndex, book.entries.length, false, true) : "";
+    }
     else page.innerHTML = `<div class="pdf-compact-grid">${entries.map((e,i) => buildPdfEntryHTML(e, e._index, book.entries.length, true)).join("")}</div>`;
   }
   return page;
@@ -981,8 +990,7 @@ function buildPdfPage(layout, book, entries, includeCover, pageIndex, totalPages
 async function fitAccordionPanels(staging) {
   const panels = [...staging.querySelectorAll(".pdf-panel-entry-inner")];
   for (const inner of panels) {
-    const desc = inner.querySelector(".pdf-panel-description");
-    if (!desc) continue;
+    if (!inner.querySelector(".pdf-panel-description")) continue;
     const steps = [
       ["", 1],
       ["pdf-fit-tight", 0.96],
@@ -994,10 +1002,10 @@ async function fitAccordionPanels(staging) {
       if (className) inner.classList.add(className);
       inner.style.fontSize = `${7 * scale}pt`;
       const title = inner.querySelector(".pdf-panel-title");
+      const desc = inner.querySelector(".pdf-panel-description");
       if (title) title.style.fontSize = `${10 * scale}pt`;
-      desc.style.fontSize = `${6.5 * scale}pt`;
-      await new Promise(r => requestAnimationFrame(r));
-      if (desc.scrollHeight <= desc.clientHeight + 1) break;
+      if (desc) desc.style.fontSize = `${6.5 * scale}pt`;
+      if (inner.scrollHeight <= inner.clientHeight + 1) break;
     }
   }
 }
@@ -1035,7 +1043,7 @@ async function createPdfFromCurrentBook() {
       }
     } else if (layout === "single") {
       if (includeCover) pages.push(buildPdfPage("single", book, [], true, 0, 0));
-      book.entries.forEach((entry,index) => pages.push(buildPdfPage("single", book, [entry], includeCover, pages.length, 0)));
+      book.entries.forEach((entry,index) => pages.push(buildPdfPage("single", book, [{...entry,_index:index}], includeCover, pages.length, 0)));
       if (!pages.length) pages.push(buildPdfPage("single", book, [], false, 0, 0));
     } else {
       if (includeCover) pages.push(buildPdfPage("compact", book, [], true, 0, 0));
@@ -1048,7 +1056,6 @@ async function createPdfFromCurrentBook() {
 
     for (const page of pages) staging.appendChild(page);
     await waitForImages(staging);
-    if (document.fonts?.ready) await document.fonts.ready;
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     if (layout === "accordion") {
       await fitAccordionPanels(staging);
